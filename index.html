@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SI-MOU - Sistem Informasi MOU & Perjanjian Tunggakan</title>
+  <!-- Tailwind CSS & FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Ekspor Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    @media print {
+      body * { visibility: hidden; }
+      #surat-satuan-template, #surat-satuan-template * { visibility: visible; }
+      #surat-satuan-template { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
+    }
+    /* Animasi Toast */
+    .toast-enter {
+      transform: translateX(120%);
+      opacity: 0;
+    }
+    .toast-show {
+      transform: translateX(0);
+      opacity: 1;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .toast-leave {
+      transform: translateX(120%);
+      opacity: 0;
+      transition: all 0.3s ease-in;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex">
+
+  <!-- Toast Notification Container (Sudut Kanan Atas) -->
+  <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none max-w-sm w-full px-3"></div>
+
+  <!-- Mobile Overlay -->
+  <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden"></div>
+
+  <!-- Sidebar Navigasi -->
+  <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-emerald-950 text-white flex flex-col transition-transform duration-300 transform -translate-x-full md:translate-x-0 md:static md:inset-auto md:min-h-screen shadow-2xl md:shadow-none">
+    <!-- Brand Info -->
+    <div class="p-5 border-b border-emerald-800/80 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div id="sidebar-logo-container" class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center font-bold text-lg text-white shadow-md overflow-hidden">
+          <i id="sidebar-logo-icon" class="fas fa-file-contract"></i>
+          <img id="sidebar-logo-img" class="w-full h-full object-cover hidden" alt="Logo">
+        </div>
+        <div>
+          <h2 class="font-bold text-base tracking-wide" id="sidebar-app-title">SI-MOU</h2>
+          <p class="text-[11px] text-emerald-300" id="sidebar-app-sub">Ma'had Imam Syafi'i</p>
+        </div>
+      </div>
+      <button onclick="toggleSidebar()" class="md:hidden text-emerald-300 hover:text-white p-1">
+        <i class="fas fa-times text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Navigation List -->
+    <div class="flex-1 overflow-y-auto px-4 py-5 space-y-1.5 text-xs">
+      <p class="text-[10px] uppercase font-bold tracking-wider text-emerald-400 px-3 mb-2">Navigasi Utama</p>
+      
+      <button onclick="toggleModal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white p-2.5 rounded-xl font-semibold flex items-center gap-2.5 transition shadow-sm mb-2">
+        <i class="fas fa-plus-circle text-sm"></i> Tambah Surat / MOU
+      </button>
+
+      <a href="#statistik-area" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition">
+        <i class="fas fa-chart-pie w-4 text-center"></i> Ringkasan & Grafik
+      </a>
+      <a href="#tabel-area" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition">
+        <i class="fas fa-table-list w-4 text-center"></i> Rekapitulasi Data
+      </a>
+
+      <p class="text-[10px] uppercase font-bold tracking-wider text-emerald-400 px-3 pt-3 mb-2">Pengaturan Instansi</p>
+      <button onclick="toggleProfileModal()" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition">
+        <i class="fas fa-school-flag w-4 text-emerald-400 text-center"></i> Profil Ma'had & Bendahara
+      </button>
+
+      <p class="text-[10px] uppercase font-bold tracking-wider text-emerald-400 px-3 pt-3 mb-2">Manajemen Data</p>
+      
+      <button onclick="exportToExcel()" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition">
+        <i class="fas fa-file-excel w-4 text-emerald-400 text-center"></i> Ekspor ke Excel
+      </button>
+      <button onclick="exportToPDF()" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition">
+        <i class="fas fa-file-pdf w-4 text-rose-400 text-center"></i> Unduh Rekap PDF
+      </button>
+      <button onclick="backupJSON()" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition">
+        <i class="fas fa-download w-4 text-amber-400 text-center"></i> Backup Data (JSON)
+      </button>
+      <label class="w-full cursor-pointer flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition">
+        <i class="fas fa-upload w-4 text-blue-400 text-center"></i>
+        <span>Restore Data (JSON)</span>
+        <input type="file" id="import-json" accept=".json" onchange="restoreJSON(event)" class="hidden">
+      </label>
+    </div>
+
+    <!-- Firebase Connection Badge -->
+    <div class="p-4 border-t border-emerald-900 bg-emerald-950/60 text-[11px]">
+      <div class="flex items-center justify-between">
+        <span class="text-emerald-300">Database Status:</span>
+        <span id="db-indicator" class="flex items-center gap-1.5 text-amber-400 font-semibold">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> LocalStorage
+        </span>
+      </div>
+      <p id="db-details" class="text-[10px] text-emerald-400 mt-1">Firebase Siap Diaktifkan</p>
+    </div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+    
+    <!-- Top Mobile Navigation Bar -->
+    <div class="md:hidden bg-emerald-900 text-white p-4 flex items-center justify-between sticky top-0 z-30 shadow">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleSidebar()" class="p-1 rounded text-emerald-200 hover:text-white">
+          <i class="fas fa-bars text-xl"></i>
+        </button>
+        <div>
+          <h1 class="text-sm font-bold" id="topbar-app-title">SI-MOU</h1>
+          <p class="text-[10px] text-emerald-300" id="topbar-app-sub">Ma'had Imam Syafi'i</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="toggleProfileModal()" class="text-emerald-200 hover:text-white p-1">
+          <i class="fas fa-user-cog"></i>
+        </button>
+        <button onclick="toggleModal()" class="bg-emerald-500 px-2.5 py-1.5 rounded-lg text-xs font-semibold">
+          <i class="fas fa-plus"></i> Tambah
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
+
+      <!-- Header Desktop Banner -->
+      <div class="hidden md:flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex items-center gap-4">
+          <div id="banner-logo-container" class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center p-1 overflow-hidden">
+            <i id="banner-logo-icon" class="fas fa-school text-emerald-700 text-2xl"></i>
+            <img id="banner-logo-img" class="w-full h-full object-contain hidden" alt="Logo">
+          </div>
+          <div>
+            <h1 class="text-xl font-bold text-slate-800" id="display-nama-lembaga">SI-MOU - Sistem Informasi MOU</h1>
+            <p class="text-xs text-slate-500 mt-0.5" id="display-alamat-lembaga">Pondok / Sekolah Ma'had Imam Syafi'i</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="toggleProfileModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2.5 rounded-xl text-xs font-semibold border transition flex items-center gap-2">
+            <i class="fas fa-school-flag text-emerald-700"></i> Profil Instansi
+          </button>
+          <button onclick="toggleModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow transition flex items-center gap-2">
+            <i class="fas fa-plus-circle text-sm"></i> Tambah Surat / MOU Baru
+          </button>
+        </div>
+      </div>
+
+      <!-- Stat Cards -->
+      <div id="statistik-area" class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-amber-500">
+          <p class="text-[11px] text-slate-500 uppercase font-semibold">Total Nominal Menunggak</p>
+          <p id="stat-total-menunggak" class="text-lg md:text-xl font-bold text-amber-600 mt-1">Rp 0</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-emerald-500">
+          <p class="text-[11px] text-slate-500 uppercase font-semibold">Total Lunas</p>
+          <p id="stat-total-lunas" class="text-lg md:text-xl font-bold text-emerald-600 mt-1">Rp 0</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-blue-500">
+          <p class="text-[11px] text-slate-500 uppercase font-semibold">Total Dokumen MOU</p>
+          <p id="stat-count-surat" class="text-lg md:text-xl font-bold text-slate-700 mt-1">0 Data</p>
+        </div>
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-rose-500">
+          <p class="text-[11px] text-slate-500 uppercase font-semibold">Belum Lapor Ke Pusat</p>
+          <p id="stat-count-belum-info" class="text-lg md:text-xl font-bold text-rose-600 mt-1">0 Data</p>
+        </div>
+      </div>
+
+      <!-- Filter Pencarian Responsif -->
+      <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between border-b pb-3">
+          <h3 class="font-bold text-xs md:text-sm text-slate-700 flex items-center gap-2">
+            <i class="fas fa-filter text-emerald-600"></i> Filter & Parameter Laporan
+          </h3>
+          <button onclick="resetFilter()" class="text-xs text-rose-600 font-semibold hover:underline flex items-center gap-1">
+            <i class="fas fa-undo text-[10px]"></i> Reset Filter
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Keywords</label>
+            <input type="text" id="search-input" onkeyup="renderTable()" placeholder="Santri / Wali / No. Surat" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tanggal Mulai</label>
+            <input type="date" id="filter-tgl-mulai" onchange="renderTable()" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tanggal Selesai</label>
+            <input type="date" id="filter-tgl-selesai" onchange="renderTable()" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Bulan/Tahun Periode</label>
+            <input type="month" id="filter-bulan-tahun" onchange="renderTable()" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jenjang</label>
+            <select id="filter-jenjang" onchange="renderTable()" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
+              <option value="">Semua Jenjang</option>
+              <option value="MMTQ PUTRA">MMTQ PUTRA</option>
+              <option value="MMTQ PUTRI">MMTQ PUTRI</option>
+              <option value="MTTQ">MTTQ</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Progres Status</label>
+            <select id="filter-progres" onchange="renderTable()" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
+              <option value="">Semua Progres</option>
+              <option value="proses">proses</option>
+              <option value="lunas">lunas</option>
+              <option value="menunggak">menunggak</option>
+              <option value="menunggu pembayaran">menunggu pembayaran</option>
+              <option value="cicilan berjalan">cicilan berjalan</option>
+              <option value="melewati jatuh tempo">melewati jatuh tempo</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+          <h4 class="font-bold text-xs text-slate-700 mb-2 flex items-center gap-1.5">
+            <i class="fas fa-chart-pie text-emerald-600"></i> Persentase Jenis Tunggakan
+          </h4>
+          <div class="h-48 relative flex items-center justify-center">
+            <canvas id="jenisChart"></canvas>
+          </div>
+          <div id="jenis-percentage-list" class="mt-3 text-[11px] grid grid-cols-2 gap-1 border-t pt-2"></div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+          <h4 class="font-bold text-xs text-slate-700 mb-2 flex items-center gap-1.5">
+            <i class="fas fa-chart-bar text-emerald-600"></i> Nominal Per Jenjang
+          </h4>
+          <div class="h-48 relative">
+            <canvas id="jenjangChart"></canvas>
+          </div>
+          <div id="jenjang-percentage-list" class="mt-3 text-[11px] grid grid-cols-3 gap-1 border-t pt-2 text-center"></div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+          <h4 class="font-bold text-xs text-slate-700 mb-2 flex items-center gap-1.5">
+            <i class="fas fa-chart-line text-emerald-600"></i> Tren Tunggakan Per Bulan
+          </h4>
+          <div class="h-48 relative">
+            <canvas id="monthlyChart"></canvas>
+          </div>
+          <div id="monthly-summary" class="mt-3 text-[11px] border-t pt-2 text-slate-600 max-h-16 overflow-y-auto"></div>
+        </div>
+      </div>
+
+      <!-- Table Section -->
+      <div id="tabel-area" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/60">
+          <h3 class="font-bold text-xs md:text-sm text-slate-800 flex items-center gap-2">
+            <i class="fas fa-list text-emerald-600"></i> Rekap Perjanjian & Status Pelunasan
+          </h3>
+          <span id="filtered-counter" class="text-xs text-slate-500 font-medium">Memuat data...</span>
+        </div>
+
+        <div class="overflow-x-auto w-full">
+          <table class="w-full text-left text-xs text-slate-600 min-w-[900px]">
+            <thead class="bg-slate-100/70 border-b border-slate-200 text-slate-700 uppercase font-semibold text-[11px]">
+              <tr>
+                <th class="p-3">No</th>
+                <th class="p-3">No. Surat / Tgl</th>
+                <th class="p-3">Santri & Jenjang</th>
+                <th class="p-3">Wali & WhatsApp</th>
+                <th class="p-3">Jenis & Nominal</th>
+                <th class="p-3">Jatuh Tempo</th>
+                <th class="p-3">Status Info</th>
+                <th class="p-3">Progres</th>
+                <th class="p-3">Keterangan</th>
+                <th class="p-3 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="table-body" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Modal Form Input Data Surat/MOU -->
+  <div id="modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 md:p-6 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="p-4 md:p-5 border-b flex justify-between items-center bg-slate-50">
+        <h3 class="text-base font-bold text-slate-800" id="modal-title">Tambah Data Surat/MOU</h3>
+        <button onclick="toggleModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times text-lg"></i></button>
+      </div>
+
+      <form id="mou-form" onsubmit="saveData(event)" class="p-4 md:p-6 overflow-y-auto space-y-4 text-xs">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Periode (Bulan & Tahun)</label>
+            <input type="month" id="periode" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500" onchange="autoGenerateNoSurat()">
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Tanggal Surat</label>
+            <input type="date" id="tgl_surat" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500" onchange="autoGenerateNoSurat()">
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block font-semibold mb-1 text-slate-700">Nomor Surat Resmi</label>
+            <input type="text" id="no_surat" required placeholder="001/MIAS/MA'HAD-IS/I/I/2026" class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50">
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Nama Santri</label>
+            <input type="text" id="nama_santri" required placeholder="Nama lengkap santri" class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Nama Wali</label>
+            <input type="text" id="nama_wali" required placeholder="Nama lengkap wali" class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">No. WhatsApp Wali (Opsi Notifikasi)</label>
+            <input type="tel" id="no_hp" placeholder="Contoh: 081234567890" class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Jenjang</label>
+            <select id="jenjang" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="MMTQ PUTRA">MMTQ PUTRA</option>
+              <option value="MMTQ PUTRI">MMTQ PUTRI</option>
+              <option value="MTTQ">MTTQ</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Kelas</label>
+            <select id="kelas" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Jenis Tunggakan</label>
+            <select id="jenis_tunggakan" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="IAK">IAK</option>
+              <option value="BIAYA PANGKAL">BIAYA PANGKAL</option>
+              <option value="DAFTAR ULANG">DAFTAR ULANG</option>
+              <option value="GABUNGAN">GABUNGAN</option>
+              <option value="LAIN-LAIN">LAIN-LAIN</option>
+            </select>
+          </div>
+
+          <!-- Real-Time Formatted Currency Input -->
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Nominal Tunggakan (Rp)</label>
+            <input type="text" id="nominal_mask" required placeholder="Contoh: 1.500.000" oninput="formatCurrencyInput(this)" class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-slate-800">
+            <input type="hidden" id="nominal" required>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Tanggal Jatuh Tempo</label>
+            <input type="date" id="jatuh_tempo" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Tahapan Pembayaran</label>
+            <select id="tahapan" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="tahap ke-1">tahap ke-1</option>
+              <option value="tahap ke-2">tahap ke-2</option>
+              <option value="tahap ke-3">tahap ke-3</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Status Info Ke Pusat</label>
+            <select id="status_info" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="BELUM INFO">BELUM INFO</option>
+              <option value="SUDAH INFO">SUDAH INFO</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Progres Status</label>
+            <select id="progres" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="proses">proses</option>
+              <option value="lunas">lunas</option>
+              <option value="menunggak">menunggak</option>
+              <option value="menunggu pembayaran">menunggu pembayaran</option>
+              <option value="cicilan berjalan">cicilan berjalan</option>
+              <option value="melewati jatuh tempo">melewati jatuh tempo</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block font-semibold mb-1 text-slate-700">Keterangan Catatan Tambahan</label>
+            <textarea id="keterangan" rows="2" class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Rincian cicilan atau kesepakatan spesifik..."></textarea>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 border-t pt-4">
+          <button type="button" onclick="toggleModal()" class="px-4 py-2 border rounded-xl hover:bg-slate-100 font-semibold text-slate-600 transition">Batal</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-semibold shadow transition">Simpan Data</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Pengaturan Profil Ma'had & Bendahara -->
+  <div id="profile-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 md:p-6 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="p-4 md:p-5 border-b flex justify-between items-center bg-slate-50">
+        <div>
+          <h3 class="text-base font-bold text-slate-800">Profil Lembaga & Bendahara</h3>
+          <p class="text-xs text-slate-500">Pengaturan kop surat, identitas lembaga, logo, dan tanda tangan</p>
+        </div>
+        <button onclick="toggleProfileModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times text-lg"></i></button>
+      </div>
+
+      <form id="profile-form" onsubmit="saveProfile(event)" class="p-4 md:p-6 overflow-y-auto space-y-5 text-xs">
+        <!-- Profil Lembaga -->
+        <div class="space-y-3 border-b pb-4">
+          <h4 class="font-bold text-emerald-800 uppercase text-[11px] flex items-center gap-1.5">
+            <i class="fas fa-mosque"></i> Identitas Ma'had / Sekolah
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">Nama Lembaga / Pondok</label>
+              <input type="text" id="prof_nama_lembaga" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">Nama Singkat / Brand</label>
+              <input type="text" id="prof_singkatan" placeholder="Contoh: MIAS" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block font-semibold mb-1 text-slate-700">Alamat Lengkap & Kontak</label>
+              <input type="text" id="prof_alamat" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">Nama Kepala Sekolah / Mudir</label>
+              <input type="text" id="prof_kepala_sekolah" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">NIY / NIP Kepala Sekolah</label>
+              <input type="text" id="prof_niy_kepala" class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+          </div>
+
+          <!-- Logo Upload Section -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <label class="block font-semibold mb-1.5 text-slate-700">Upload / Pilih Logo Ma'had</label>
+            <div class="flex items-center gap-4">
+              <div id="prof_logo_preview_box" class="w-16 h-16 rounded-xl border bg-white flex items-center justify-center overflow-hidden shadow-sm">
+                <i class="fas fa-image text-slate-400 text-2xl" id="prof_logo_icon"></i>
+                <img id="prof_logo_preview" class="w-full h-full object-contain hidden" alt="Logo">
+              </div>
+              <div class="flex-1">
+                <input type="file" id="prof_logo_input" accept="image/*" onchange="previewImage(event, 'prof_logo_preview', 'prof_logo_icon', 'logo_data')" class="text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                <p class="text-[10px] text-slate-400 mt-1">Format PNG/JPG transparan direkomendasikan (Maks. 1MB)</p>
+              </div>
+              <button type="button" onclick="clearProfileImage('logo')" class="text-rose-500 hover:text-rose-700 text-xs px-2"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profil Bendahara -->
+        <div class="space-y-3">
+          <h4 class="font-bold text-emerald-800 uppercase text-[11px] flex items-center gap-1.5">
+            <i class="fas fa-user-tie"></i> Identitas Bendahara Keuangan
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">Nama Lengkap Bendahara</label>
+              <input type="text" id="prof_nama_bendahara" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">NIY / NIP Bendahara</label>
+              <input type="text" id="prof_niy_bendahara" class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+          </div>
+
+          <!-- TTD / Stempel Upload Section (Ukuran Proporsional & Lebih Besar) -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <label class="block font-semibold mb-1.5 text-slate-700">Upload / Pilih Tanda Tangan / Stempel Bendahara</label>
+            <div class="flex items-center gap-4">
+              <div id="prof_ttd_preview_box" class="w-32 h-20 rounded-xl border bg-white flex items-center justify-center overflow-hidden shadow-sm p-1">
+                <i class="fas fa-signature text-slate-400 text-2xl" id="prof_ttd_icon"></i>
+                <img id="prof_ttd_preview" class="w-full h-full object-contain hidden" alt="TTD">
+              </div>
+              <div class="flex-1">
+                <input type="file" id="prof_ttd_input" accept="image/*" onchange="previewImage(event, 'prof_ttd_preview', 'prof_ttd_icon', 'ttd_data')" class="text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                <p class="text-[10px] text-slate-400 mt-1">Format PNG transparan agar hasil tanda tangan di dokumen terlihat jelas & rapi (Maks. 1MB)</p>
+              </div>
+              <button type="button" onclick="clearProfileImage('ttd')" class="text-rose-500 hover:text-rose-700 text-xs px-2"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 border-t pt-4">
+          <button type="button" onclick="toggleProfileModal()" class="px-4 py-2 border rounded-xl hover:bg-slate-100 font-semibold text-slate-600 transition">Batal</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-semibold shadow transition">Simpan Profil</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Area Template Laporan Cetak PDF Keseluruhan (Hidden) -->
+  <div class="hidden">
+    <div id="pdf-report-template" class="p-8 text-black bg-white text-xs">
+      <div class="flex items-center gap-4 border-b-2 border-black pb-3 mb-4">
+        <div class="w-20 h-20 flex items-center justify-center">
+          <img id="pdf-logo-img" class="max-h-20 max-w-20 object-contain hidden" alt="Logo">
+        </div>
+        <div class="flex-1 text-center pr-20">
+          <h2 class="text-base font-bold uppercase tracking-wide" id="pdf-nama-lembaga">Laporan Rekapitulasi SI-MOU & Perjanjian Tunggakan Santri</h2>
+          <h3 class="text-sm font-semibold uppercase" id="pdf-brand-lembaga">MA'HAD IMAM SYAFI'I</h3>
+          <p class="text-[10px] text-gray-600" id="pdf-alamat-lembaga">Jl. Raya Serang, Banten</p>
+          <p class="text-[9px] text-gray-500 mt-0.5">Tanggal Cetak: <span id="pdf-tgl-cetak"></span></p>
+        </div>
+      </div>
+
+      <table class="w-full border-collapse border border-gray-400 text-[10px] mb-6">
+        <thead>
+          <tr class="bg-gray-100">
+            <th class="border border-gray-400 p-1">No</th>
+            <th class="border border-gray-400 p-1">No. Surat</th>
+            <th class="border border-gray-400 p-1">Periode</th>
+            <th class="border border-gray-400 p-1">Santri</th>
+            <th class="border border-gray-400 p-1">Wali</th>
+            <th class="border border-gray-400 p-1">Jenis</th>
+            <th class="border border-gray-400 p-1">Nominal</th>
+            <th class="border border-gray-400 p-1">Jatuh Tempo</th>
+            <th class="border border-gray-400 p-1">Info Pusat</th>
+            <th class="border border-gray-400 p-1">Progres</th>
+            <th class="border border-gray-400 p-1">Tahap</th>
+          </tr>
+        </thead>
+        <tbody id="pdf-table-body"></tbody>
+      </table>
+
+      <div class="flex justify-between items-start my-6">
+        <div class="p-3 border border-gray-300 rounded text-xs space-y-1">
+          <p class="font-bold">Ringkasan Laporan:</p>
+          <p>Total Nominal Menunggak: <span id="pdf-total-menunggak" class="font-bold"></span></p>
+          <p>Total Nominal Lunas: <span id="pdf-total-lunas" class="font-bold"></span></p>
+          <p>Total MOU Terdaftar: <span id="pdf-total-records" class="font-bold"></span></p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-8 text-center mt-8 pt-4">
+        <div>
+          <p class="mb-2">Bendahara Sekolah / Pondok,</p>
+          <!-- Proporsi Tanda Tangan PDF Diperbesar -->
+          <div class="h-24 flex items-center justify-center my-1">
+            <img id="pdf-ttd-img" class="h-24 max-w-[200px] object-contain hidden" alt="TTD">
+          </div>
+          <p class="font-bold underline mt-1" id="pdf-nama-bendahara">Bendahara</p>
+          <p class="text-[10px] text-gray-600 mt-0.5">NIY: <span id="pdf-niy-bendahara">...........................................</span></p>
+        </div>
+        <div>
+          <p class="mb-2">Mengetahui,<br>Kepala Sekolah / Mudir,</p>
+          <div class="h-24 my-1"></div>
+          <p class="font-bold underline mt-1" id="pdf-nama-kepala">Mudir Ma'had</p>
+          <p class="text-[10px] text-gray-600 mt-0.5">NIY: <span id="pdf-niy-kepala">...........................................</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Area Template Lembar Surat Perjanjian Satuan (Cetak Resmi F4/A4) -->
+  <div id="surat-satuan-template" class="hidden p-10 bg-white text-black font-serif text-sm leading-relaxed">
+    <div class="flex items-center gap-4 border-b-2 border-black pb-4 mb-6">
+      <div class="w-24 h-24 flex items-center justify-center">
+        <img id="sp-logo-img" class="max-h-24 max-w-24 object-contain hidden" alt="Logo">
+      </div>
+      <div class="flex-1 text-center pr-24">
+        <h2 class="text-xl font-bold tracking-wide uppercase" id="sp-instansi-nama">MA'HAD IMAM SYAFI'I</h2>
+        <p class="text-xs italic" id="sp-instansi-alamat">Jl. Raya Serang, Banten | Lembaga Pendidikan Islam & Tahfidzul Qur'an</p>
+        <h3 class="text-base font-bold mt-3 underline uppercase">SURAT PERJANJIAN & KESEPAKATAN PEMBAYARAN (MOU)</h3>
+        <p class="text-xs font-sans mt-0.5">Nomor: <span id="sp-no-surat" class="font-semibold"></span></p>
+      </div>
+    </div>
+
+    <p class="mb-3">Yang bertanda tangan di bawah ini:</p>
+    <div class="ml-6 space-y-1 text-xs mb-4">
+      <div class="grid grid-cols-3"><span class="w-36">Nama Orang Tua / Wali</span>: <strong id="sp-nama-wali"></strong></div>
+      <div class="grid grid-cols-3"><span class="w-36">Orang Tua dari Santri</span>: <strong id="sp-nama-santri"></strong></div>
+      <div class="grid grid-cols-3"><span class="w-36">Jenjang / Kelas</span>: <span id="sp-jenjang-kelas"></span></div>
+    </div>
+
+    <p class="text-xs mb-3 text-justify">
+      Menyatakan dengan sesungguhnya bahwa kami bersedia dan berkomitmen untuk menyelesaikan kewajiban administrasi tunggakan pendidikan santri di lingkungan <span id="sp-teks-lembaga" class="font-semibold">Pondok Ma'had Imam Syafi'i</span> dengan rincian sebagai berikut:
+    </p>
+
+    <div class="bg-gray-50 border p-3.5 rounded mb-4 text-xs space-y-1.5 font-sans">
+      <div class="flex justify-between"><span>Jenis Kewajiban / Tunggakan</span>: <strong id="sp-jenis"></strong></div>
+      <div class="flex justify-between"><span>Jumlah Nominal Kewajiban</span>: <strong id="sp-nominal" class="text-sm text-slate-900"></strong></div>
+      <div class="flex justify-between"><span>Batas Waktu Pelunasan (Jatuh Tempo)</span>: <strong id="sp-tempo"></strong></div>
+      <div class="flex justify-between"><span>Rencana Tahapan Pembayaran</span>: <span id="sp-tahapan"></span></div>
+      <div class="flex justify-between"><span>Catatan Kesepakatan</span>: <span id="sp-catatan"></span></div>
+    </div>
+
+    <p class="text-xs text-justify mb-8">
+      Demikian surat perjanjian ini dibuat dengan penuh kesadaran dan tanpa paksaan dari pihak manapun demi kelancaran proses pendidikan santri. Apabila sampai batas waktu yang telah disepakati belum dapat diselesaikan, kami bersedia mengikuti ketentuan kebijakan pondok yang berlaku.
+    </p>
+
+    <!-- Proporsi Tanda Tangan Cetak Surat Resmi Diperbesar -->
+    <div class="grid grid-cols-2 text-center text-xs mt-8">
+      <div>
+        <p class="mb-1">Serang, <span id="sp-tgl-surat"></span></p>
+        <p class="mb-2">Pihak Pertama (Orang Tua / Wali Santri),</p>
+        <div class="h-28 flex items-center justify-center">
+          <span class="text-[10px] text-gray-400 border border-dashed border-gray-300 p-2 rounded">Materai 10.000</span>
+        </div>
+        <p class="font-bold underline mt-1" id="sp-ttd-wali"></p>
+      </div>
+      <div>
+        <p class="mb-1">&nbsp;</p>
+        <p class="mb-2">Pihak Kedua (Bagian Keuangan / Bendahara),</p>
+        <div class="h-28 flex items-center justify-center">
+          <img id="sp-ttd-img" class="h-28 max-w-[220px] object-contain hidden" alt="TTD">
+        </div>
+        <p class="font-bold underline mt-1" id="sp-ttd-bendahara">Bendahara</p>
+        <p class="text-[10px] text-gray-600">NIY: <span id="sp-niy-bendahara">...........................................</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT FIREBASE & LOGIKA APLIKASI -->
+  <script type="module">
+    // --- 1. FIREBASE CONFIGURATION (MODULAR SDK) ---
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCGYUqFOH48adsxQfCtBEgTZgZhkoEf0W4",
+      authDomain: "si-mou-52513.firebaseapp.com",
+      projectId: "si-mou-52513",
+      storageBucket: "si-mou-52513.firebasestorage.app",
+      messagingSenderId: "888062905884",
+      appId: "1:888062905884:web:ec8e950b8cd20fa21a99d9"
+    };
+
+    let db = null;
+    let isFirebaseActive = false;
+
+    if (firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("PASTE_API_KEY")) {
+      try {
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        isFirebaseActive = true;
+        document.getElementById('db-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Cloud Firestore';
+        document.getElementById('db-indicator').className = 'flex items-center gap-1.5 text-emerald-300 font-semibold';
+        document.getElementById('db-details').innerText = 'Sinkronisasi Otomatis Aktif';
+      } catch (err) {
+        console.warn("Gagal terhubung ke Firebase, menggunakan localStorage:", err);
+      }
+    }
+
+    // --- 2. SISTEM NOTIFIKASI TOAST MODERN ---
+    window.showToast = function(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto flex items-center gap-3 p-4 rounded-xl shadow-xl border toast-enter ${
+        type === 'success' 
+          ? 'bg-emerald-900/95 text-white border-emerald-700' 
+          : type === 'error'
+          ? 'bg-rose-900/95 text-white border-rose-700'
+          : 'bg-slate-900/95 text-white border-slate-700'
+      }`;
+
+      const iconClass = type === 'success' ? 'fa-check-circle text-emerald-400' : type === 'error' ? 'fa-exclamation-circle text-rose-400' : 'fa-info-circle text-blue-400';
+
+      toast.innerHTML = `
+        <div class="text-lg flex-shrink-0"><i class="fas ${iconClass}"></i></div>
+        <div class="flex-1 text-xs font-medium leading-relaxed">${message}</div>
+        <button class="text-slate-300 hover:text-white transition flex-shrink-0 text-xs ml-2" onclick="this.parentElement.remove()">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+
+      container.appendChild(toast);
+
+      // Trigger animasi masuk
+      requestAnimationFrame(() => {
+        toast.classList.remove('toast-enter');
+        toast.classList.add('toast-show');
+      });
+
+      // Hilang otomatis setelah 3.5 detik
+      setTimeout(() => {
+        if (toast.parentElement) {
+          toast.classList.remove('toast-show');
+          toast.classList.add('toast-leave');
+          setTimeout(() => toast.remove(), 300);
+        }
+      }, 3500);
+    };
+
+    // --- 3. STATE DATA DASAR & PROFIL MA'HAD ---
+    let defaultProfile = {
+      nama_lembaga: "Ma'had Imam Syafi'i Serang",
+      singkatan: "MIAS",
+      alamat: "Jl. Raya Serang, Banten | Lembaga Pendidikan Islam & Tahfidzul Qur'an",
+      kepala_sekolah: "Ustadz Pembina, Lc.",
+      niy_kepala: "202401001",
+      nama_bendahara: "Dadi Slamet Riyadi",
+      niy_bendahara: "202402002",
+      logo_base64: "",
+      ttd_base64: ""
+    };
+
+    let instituteProfile = JSON.parse(localStorage.getItem('mou_institute_profile')) || defaultProfile;
+
+    let database = JSON.parse(localStorage.getItem('mou_tunggakan_db')) || [
+      {
+        id: 1,
+        periode: "2026-01",
+        no_surat: "001/MIAS/MA'HAD-IS/I/I/2026",
+        tgl_surat: "2026-01-10",
+        nama_santri: "Ahmad Zaki",
+        jenjang: "MMTQ PUTRA",
+        kelas: "1",
+        nama_wali: "H. Abdullah",
+        no_hp: "081234567890",
+        nominal: 2500000,
+        jenis_tunggakan: "BIAYA PANGKAL",
+        jatuh_tempo: "2026-02-10",
+        status_info: "SUDAH INFO",
+        progres: "cicilan berjalan",
+        tahapan: "tahap ke-1",
+        keterangan: "Telah dibayar DP Rp 500.000"
+      },
+      {
+        id: 2,
+        periode: "2026-02",
+        no_surat: "002/MIAS/MA'HAD-IS/I/II/2026",
+        tgl_surat: "2026-02-01",
+        nama_santri: "Aisyah Humaira",
+        jenjang: "MMTQ PUTRI",
+        kelas: "3",
+        nama_wali: "Rahmat Hidayat",
+        no_hp: "089876543210",
+        nominal: 1200000,
+        jenis_tunggakan: "DAFTAR ULANG",
+        jatuh_tempo: "2026-02-28",
+        status_info: "BELUM INFO",
+        progres: "menunggak",
+        tahapan: "tahap ke-2",
+        keterangan: "Menunggu panen bulan depan"
+      },
+      {
+        id: 3,
+        periode: "2026-02",
+        no_surat: "003/MIAS/MA'HAD-IS/I/II/2026",
+        tgl_surat: "2026-02-15",
+        nama_santri: "Faris Ali",
+        jenjang: "MTTQ",
+        kelas: "2",
+        nama_wali: "Umar Khattab",
+        no_hp: "",
+        nominal: 1800000,
+        jenis_tunggakan: "IAK",
+        jatuh_tempo: "2026-03-01",
+        status_info: "SUDAH INFO",
+        progres: "proses",
+        tahapan: "tahap ke-1",
+        keterangan: "-"
+      }
+    ];
+
+    let editIndex = null;
+    let jenisChartInstance = null;
+    let jenjangChartInstance = null;
+    let monthlyChartInstance = null;
+
+    let tempLogoBase64 = instituteProfile.logo_base64 || "";
+    let tempTtdBase64 = instituteProfile.ttd_base64 || "";
+
+    // Sinkronisasi Cloud Firestore
+    async function loadDataFromCloud() {
+      if (isFirebaseActive && db) {
+        try {
+          const profDoc = await getDoc(doc(db, "mou_settings", "profile"));
+          if (profDoc.exists()) {
+            instituteProfile = { ...defaultProfile, ...profDoc.data() };
+            localStorage.setItem('mou_institute_profile', JSON.stringify(instituteProfile));
+            applyProfileUI();
+          }
+
+          const snapshot = await getDocs(collection(db, "mou_tunggakan"));
+          if (!snapshot.empty) {
+            database = snapshot.docs.map(d => ({ firebaseId: d.id, ...d.data() }));
+            localStorage.setItem('mou_tunggakan_db', JSON.stringify(database));
+            renderTable();
+          }
+        } catch (e) {
+          console.error("Gagal sinkron Firestore:", e);
+        }
+      }
+    }
+
+    window.saveToLocalStorage = function() {
+      localStorage.setItem('mou_tunggakan_db', JSON.stringify(database));
+    };
+
+    window.toggleSidebar = function() {
+      const sb = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      sb.classList.toggle('-translate-x-full');
+      overlay.classList.toggle('hidden');
+    };
+
+    window.romanize = function(num) {
+      const lookup = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1};
+      let roman = '';
+      for (let i in lookup) {
+        while (num >= lookup[i]) {
+          roman += i;
+          num -= lookup[i];
+        }
+      }
+      return roman || 'I';
+    };
+
+    window.autoGenerateNoSurat = function() {
+      const tgl = document.getElementById('tgl_surat').value;
+      if (!tgl) return;
+      const dateObj = new Date(tgl);
+      const monthRoman = romanize(dateObj.getMonth() + 1);
+      const year = dateObj.getFullYear();
+      const seq = String(database.length + 1).padStart(3, '0');
+      const brand = instituteProfile.singkatan || 'MIAS';
+      document.getElementById('no_surat').value = `${seq}/${brand}/MA'HAD-IS/I/${monthRoman}/${year}`;
+    };
+
+    window.formatRupiah = function(num) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+    };
+
+    window.formatCurrencyInput = function(input) {
+      let rawValue = input.value.replace(/[^0-9]/g, '');
+      if (!rawValue) {
+        input.value = '';
+        document.getElementById('nominal').value = '';
+        return;
+      }
+      const formatted = new Intl.NumberFormat('id-ID').format(rawValue);
+      input.value = formatted;
+      document.getElementById('nominal').value = rawValue;
+    };
+
+    window.toggleModal = function() {
+      const modal = document.getElementById('modal');
+      modal.classList.toggle('hidden');
+      if (modal.classList.contains('hidden')) {
+        document.getElementById('mou-form').reset();
+        document.getElementById('nominal').value = '';
+        editIndex = null;
+        document.getElementById('modal-title').innerText = "Tambah Data Surat/MOU";
+      }
+    };
+
+    window.toggleProfileModal = function() {
+      const pModal = document.getElementById('profile-modal');
+      pModal.classList.toggle('hidden');
+      if (!pModal.classList.contains('hidden')) {
+        document.getElementById('prof_nama_lembaga').value = instituteProfile.nama_lembaga || '';
+        document.getElementById('prof_singkatan').value = instituteProfile.singkatan || '';
+        document.getElementById('prof_alamat').value = instituteProfile.alamat || '';
+        document.getElementById('prof_kepala_sekolah').value = instituteProfile.kepala_sekolah || '';
+        document.getElementById('prof_niy_kepala').value = instituteProfile.niy_kepala || '';
+        document.getElementById('prof_nama_bendahara').value = instituteProfile.nama_bendahara || '';
+        document.getElementById('prof_niy_bendahara').value = instituteProfile.niy_bendahara || '';
+        
+        tempLogoBase64 = instituteProfile.logo_base64 || '';
+        tempTtdBase64 = instituteProfile.ttd_base64 || '';
+        updateImagePreviews();
+      }
+    };
+
+    function updateImagePreviews() {
+      const logoImg = document.getElementById('prof_logo_preview');
+      const logoIcon = document.getElementById('prof_logo_icon');
+      if (tempLogoBase64) {
+        logoImg.src = tempLogoBase64;
+        logoImg.classList.remove('hidden');
+        logoIcon.classList.add('hidden');
+      } else {
+        logoImg.classList.add('hidden');
+        logoIcon.classList.remove('hidden');
+      }
+
+      const ttdImg = document.getElementById('prof_ttd_preview');
+      const ttdIcon = document.getElementById('prof_ttd_icon');
+      if (tempTtdBase64) {
+        ttdImg.src = tempTtdBase64;
+        ttdImg.classList.remove('hidden');
+        ttdIcon.classList.add('hidden');
+      } else {
+        ttdImg.classList.add('hidden');
+        ttdIcon.classList.remove('hidden');
+      }
+    }
+
+    window.previewImage = function(event, imgId, iconId, targetType) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (file.size > 1024 * 1024) {
+        showToast("Ukuran file melebihi 1MB. Silakan gunakan file yang lebih kecil.", "error");
+        event.target.value = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64 = e.target.result;
+        if (targetType === 'logo_data') tempLogoBase64 = base64;
+        if (targetType === 'ttd_data') tempTtdBase64 = base64;
+        updateImagePreviews();
+      };
+      reader.readAsDataURL(file);
+    };
+
+    window.clearProfileImage = function(type) {
+      if (type === 'logo') {
+        tempLogoBase64 = "";
+        document.getElementById('prof_logo_input').value = "";
+      } else {
+        tempTtdBase64 = "";
+        document.getElementById('prof_ttd_input').value = "";
+      }
+      updateImagePreviews();
+    };
+
+    window.saveProfile = async function(e) {
+      e.preventDefault();
+      instituteProfile = {
+        nama_lembaga: document.getElementById('prof_nama_lembaga').value,
+        singkatan: document.getElementById('prof_singkatan').value,
+        alamat: document.getElementById('prof_alamat').value,
+        kepala_sekolah: document.getElementById('prof_kepala_sekolah').value,
+        niy_kepala: document.getElementById('prof_niy_kepala').value,
+        nama_bendahara: document.getElementById('prof_nama_bendahara').value,
+        niy_bendahara: document.getElementById('prof_niy_bendahara').value,
+        logo_base64: tempLogoBase64,
+        ttd_base64: tempTtdBase64
+      };
+
+      localStorage.setItem('mou_institute_profile', JSON.stringify(instituteProfile));
+
+      if (isFirebaseActive && db) {
+        try {
+          await setDoc(doc(db, "mou_settings", "profile"), instituteProfile);
+        } catch (err) {
+          console.error("Gagal simpan profil ke Firestore:", err);
+        }
+      }
+
+      applyProfileUI();
+      // Langsung tutup modal dan tampilkan Toast Notification
+      toggleProfileModal();
+      showToast("Profil Lembaga & Tanda Tangan berhasil disimpan!");
+    };
+
+    function applyProfileUI() {
+      // Sidebar Branding SI-MOU
+      document.getElementById('sidebar-app-title').innerText = "SI-MOU";
+      document.getElementById('sidebar-app-sub').innerText = instituteProfile.nama_lembaga;
+      document.getElementById('topbar-app-title').innerText = "SI-MOU";
+      document.getElementById('topbar-app-sub').innerText = instituteProfile.nama_lembaga;
+
+      // Banner Desktop
+      document.getElementById('display-nama-lembaga').innerText = `SI-MOU - Rekapitulasi ${instituteProfile.singkatan || 'MIAS'}`;
+      document.getElementById('display-alamat-lembaga').innerText = `${instituteProfile.nama_lembaga} | ${instituteProfile.alamat}`;
+
+      // Logo Sidebar & Desktop Banner
+      const sLogoImg = document.getElementById('sidebar-logo-img');
+      const sLogoIcon = document.getElementById('sidebar-logo-icon');
+      const bLogoImg = document.getElementById('banner-logo-img');
+      const bLogoIcon = document.getElementById('banner-logo-icon');
+
+      if (instituteProfile.logo_base64) {
+        sLogoImg.src = instituteProfile.logo_base64;
+        sLogoImg.classList.remove('hidden');
+        sLogoIcon.classList.add('hidden');
+
+        bLogoImg.src = instituteProfile.logo_base64;
+        bLogoImg.classList.remove('hidden');
+        bLogoIcon.classList.add('hidden');
+      } else {
+        sLogoImg.classList.add('hidden');
+        sLogoIcon.classList.remove('hidden');
+
+        bLogoImg.classList.add('hidden');
+        bLogoIcon.classList.remove('hidden');
+      }
+    }
+
+    window.resetFilter = function() {
+      document.getElementById('search-input').value = '';
+      document.getElementById('filter-tgl-mulai').value = '';
+      document.getElementById('filter-tgl-selesai').value = '';
+      document.getElementById('filter-bulan-tahun').value = '';
+      document.getElementById('filter-jenjang').value = '';
+      document.getElementById('filter-progres').value = '';
+      renderTable();
+    };
+
+    function getDueAlert(dueDateStr, progres) {
+      if (progres === 'lunas') return { text: 'Lunas', class: 'bg-emerald-100 text-emerald-800' };
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const dueDate = new Date(dueDateStr);
+      dueDate.setHours(0,0,0,0);
+      const diffTime = dueDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 0) return { text: `Lewat ${Math.abs(diffDays)} Hari`, class: 'bg-rose-100 text-rose-800 font-bold' };
+      if (diffDays <= 3) return { text: `Tenggat ${diffDays} Hari`, class: 'bg-amber-100 text-amber-800 font-semibold' };
+      return { text: 'Aman', class: 'bg-slate-100 text-slate-700' };
+    }
+
+    window.getFilteredData = function() {
+      const search = (document.getElementById('search-input').value || '').toLowerCase();
+      const tglMulai = document.getElementById('filter-tgl-mulai').value;
+      const tglSelesai = document.getElementById('filter-tgl-selesai').value;
+      const bulanTahun = document.getElementById('filter-bulan-tahun').value;
+      const filterJenjang = document.getElementById('filter-jenjang').value;
+      const filterProgres = document.getElementById('filter-progres').value;
+
+      return database.filter(item => {
+        const matchSearch = (item.nama_santri || '').toLowerCase().includes(search) || 
+                            (item.nama_wali || '').toLowerCase().includes(search) || 
+                            (item.no_surat || '').toLowerCase().includes(search);
+        
+        let matchTgl = true;
+        if (tglMulai) matchTgl = matchTgl && (item.tgl_surat >= tglMulai);
+        if (tglSelesai) matchTgl = matchTgl && (item.tgl_surat <= tglSelesai);
+
+        let matchBulanTahun = true;
+        if (bulanTahun) matchBulanTahun = (item.periode === bulanTahun);
+
+        const matchJenjang = filterJenjang ? item.jenjang === filterJenjang : true;
+        const matchProgres = filterProgres ? item.progres === filterProgres : true;
+
+        return matchSearch && matchTgl && matchBulanTahun && matchJenjang && matchProgres;
+      });
+    };
+
+    window.renderTable = function() {
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+      const filteredData = getFilteredData();
+
+      let totalMenunggak = 0;
+      let totalLunas = 0;
+      let countBelumInfo = 0;
+
+      filteredData.forEach((item, index) => {
+        if (item.progres === 'lunas') totalLunas += Number(item.nominal);
+        else totalMenunggak += Number(item.nominal);
+
+        if (item.status_info === 'BELUM INFO') countBelumInfo++;
+
+        const alertStatus = getDueAlert(item.jatuh_tempo, item.progres);
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+        tr.innerHTML = `
+          <td class="p-3 font-medium text-slate-500">${index + 1}</td>
+          <td class="p-3">
+            <div class="font-bold text-emerald-800">${item.no_surat}</div>
+            <div class="text-[10px] text-slate-400">${item.tgl_surat} (${item.periode})</div>
+          </td>
+          <td class="p-3">
+            <div class="font-bold text-slate-800">${item.nama_santri}</div>
+            <div class="text-[10px] text-slate-500">${item.jenjang} - Kls ${item.kelas}</div>
+          </td>
+          <td class="p-3">
+            <div class="font-medium text-slate-700">${item.nama_wali}</div>
+            ${item.no_hp ? `<span class="text-[10px] text-emerald-600 font-semibold"><i class="fab fa-whatsapp"></i> ${item.no_hp}</span>` : '<span class="text-[10px] text-slate-400">-</span>'}
+          </td>
+          <td class="p-3">
+            <div class="font-semibold text-slate-800">${formatRupiah(item.nominal)}</div>
+            <span class="text-[10px] bg-slate-200 px-1.5 py-0.5 rounded">${item.jenis_tunggakan}</span>
+          </td>
+          <td class="p-3">
+            <div>${item.jatuh_tempo}</div>
+            <span class="text-[9px] px-1.5 py-0.5 rounded-full ${alertStatus.class}">${alertStatus.text}</span>
+          </td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${item.status_info === 'SUDAH INFO' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+              ${item.status_info}
+            </span>
+          </td>
+          <td class="p-3">
+            <div class="capitalize font-semibold text-slate-700">${item.progres}</div>
+            <div class="text-[10px] text-slate-500">${item.tahapan}</div>
+          </td>
+          <td class="p-3 max-w-[120px] truncate" title="${item.keterangan || ''}">${item.keterangan || '-'}</td>
+          <td class="p-3 text-center">
+            <div class="flex items-center justify-center gap-1.5">
+              <button onclick="cetakSuratSatuan(${index})" title="Cetak Surat Perjanjian Satuan" class="p-1.5 text-emerald-700 hover:bg-emerald-50 rounded"><i class="fas fa-print"></i></button>
+              ${item.no_hp ? `<button onclick="sendWA(${index})" title="Kirim Pesan WhatsApp" class="p-1.5 text-green-600 hover:bg-green-50 rounded"><i class="fab fa-whatsapp"></i></button>` : ''}
+              <button onclick="editData(${index})" title="Edit" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded"><i class="fas fa-edit"></i></button>
+              <button onclick="deleteData(${index})" title="Hapus" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('filtered-counter').innerText = `Menampilkan ${filteredData.length} dari ${database.length} data`;
+      document.getElementById('stat-total-menunggak').innerText = formatRupiah(totalMenunggak);
+      document.getElementById('stat-total-lunas').innerText = formatRupiah(totalLunas);
+      document.getElementById('stat-count-surat').innerText = `${filteredData.length} Dokumen`;
+      document.getElementById('stat-count-belum-info').innerText = `${countBelumInfo} Data`;
+
+      updateCharts(filteredData);
+    };
+
+    function updateCharts(data) {
+      const grandTotal = data.reduce((acc, curr) => acc + Number(curr.nominal), 0);
+
+      // Jenis Chart
+      const jenisCategories = ['IAK', 'BIAYA PANGKAL', 'DAFTAR ULANG', 'GABUNGAN', 'LAIN-LAIN'];
+      const jenisDataMap = { 'IAK': 0, 'BIAYA PANGKAL': 0, 'DAFTAR ULANG': 0, 'GABUNGAN': 0, 'LAIN-LAIN': 0 };
+      data.forEach(item => { if (jenisDataMap[item.jenis_tunggakan] !== undefined) jenisDataMap[item.jenis_tunggakan] += Number(item.nominal); });
+      const jenisValues = jenisCategories.map(cat => jenisDataMap[cat]);
+      
+      document.getElementById('jenis-percentage-list').innerHTML = jenisCategories.map(cat => {
+        const val = jenisDataMap[cat];
+        const pct = grandTotal > 0 ? ((val / grandTotal) * 100).toFixed(1) : 0;
+        return `<div><span class="font-semibold text-slate-700">${cat}:</span> ${pct}%</div>`;
+      }).join('');
+
+      if (jenisChartInstance) jenisChartInstance.destroy();
+      jenisChartInstance = new Chart(document.getElementById('jenisChart'), {
+        type: 'doughnut',
+        data: {
+          labels: jenisCategories,
+          datasets: [{ data: jenisValues, backgroundColor: ['#059669', '#d97706', '#2563eb', '#9333ea', '#64748b'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+
+      // Jenjang Chart
+      const jenjangCategories = ['MMTQ PUTRA', 'MMTQ PUTRI', 'MTTQ'];
+      const jenjangDataMap = { 'MMTQ PUTRA': 0, 'MMTQ PUTRI': 0, 'MTTQ': 0 };
+      data.forEach(item => { if (jenjangDataMap[item.jenjang] !== undefined) jenjangDataMap[item.jenjang] += Number(item.nominal); });
+      const jenjangValues = jenjangCategories.map(j => jenjangDataMap[j]);
+
+      document.getElementById('jenjang-percentage-list').innerHTML = jenjangCategories.map(j => {
+        const val = jenjangDataMap[j];
+        const pct = grandTotal > 0 ? ((val / grandTotal) * 100).toFixed(1) : 0;
+        return `<div><p class="font-semibold text-slate-700">${j}</p><p class="text-emerald-700 font-bold">${pct}%</p></div>`;
+      }).join('');
+
+      if (jenjangChartInstance) jenjangChartInstance.destroy();
+      jenjangChartInstance = new Chart(document.getElementById('jenjangChart'), {
+        type: 'bar',
+        data: {
+          labels: jenjangCategories,
+          datasets: [{ label: 'Total Nominal', data: jenjangValues, backgroundColor: ['#10b981', '#f59e0b', '#3b82f6'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+      });
+
+      // Monthly Chart
+      const monthlyDataMap = {};
+      data.forEach(item => {
+        const mKey = item.periode || 'Lainnya';
+        monthlyDataMap[mKey] = (monthlyDataMap[mKey] || 0) + Number(item.nominal);
+      });
+      const sortedMonths = Object.keys(monthlyDataMap).sort();
+      const monthlyValues = sortedMonths.map(m => monthlyDataMap[m]);
+
+      document.getElementById('monthly-summary').innerHTML = sortedMonths.map(m => {
+        const val = monthlyDataMap[m];
+        const pct = grandTotal > 0 ? ((val / grandTotal) * 100).toFixed(1) : 0;
+        return `<div class="flex justify-between border-b py-0.5"><span>${m}: <strong>${formatRupiah(val)}</strong></span><span class="font-bold text-emerald-700">${pct}%</span></div>`;
+      }).join('') || 'Belum ada data.';
+
+      if (monthlyChartInstance) monthlyChartInstance.destroy();
+      monthlyChartInstance = new Chart(document.getElementById('monthlyChart'), {
+        type: 'line',
+        data: {
+          labels: sortedMonths.length ? sortedMonths : ['-'],
+          datasets: [{
+            label: 'Total (Rp)',
+            data: monthlyValues.length ? monthlyValues : [0],
+            borderColor: '#059669',
+            backgroundColor: 'rgba(5, 150, 105, 0.1)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    // --- 4. CRUD LOGIC (FIREBASE & LOCALSTORAGE) ---
+    window.saveData = async function(e) {
+      e.preventDefault();
+      const nominalClean = Number(document.getElementById('nominal').value || 0);
+
+      const newItem = {
+        id: editIndex !== null ? database[editIndex].id : Date.now(),
+        periode: document.getElementById('periode').value,
+        no_surat: document.getElementById('no_surat').value,
+        tgl_surat: document.getElementById('tgl_surat').value,
+        nama_santri: document.getElementById('nama_santri').value,
+        jenjang: document.getElementById('jenjang').value,
+        kelas: document.getElementById('kelas').value,
+        nama_wali: document.getElementById('nama_wali').value,
+        no_hp: document.getElementById('no_hp').value,
+        nominal: nominalClean,
+        jenis_tunggakan: document.getElementById('jenis_tunggakan').value,
+        jatuh_tempo: document.getElementById('jatuh_tempo').value,
+        status_info: document.getElementById('status_info').value,
+        progres: document.getElementById('progres').value,
+        tahapan: document.getElementById('tahapan').value,
+        keterangan: document.getElementById('keterangan').value
+      };
+
+      const isEdit = editIndex !== null;
+
+      if (isFirebaseActive && db) {
+        try {
+          if (isEdit && database[editIndex].firebaseId) {
+            await updateDoc(doc(db, "mou_tunggakan", database[editIndex].firebaseId), newItem);
+            newItem.firebaseId = database[editIndex].firebaseId;
+          } else {
+            const docRef = await addDoc(collection(db, "mou_tunggakan"), newItem);
+            newItem.firebaseId = docRef.id;
+          }
+        } catch (err) {
+          console.error("Gagal simpan ke Firebase:", err);
+        }
+      }
+
+      if (isEdit) {
+        database[editIndex] = newItem;
+      } else {
+        database.push(newItem);
+      }
+
+      saveToLocalStorage();
+      renderTable();
+      
+      // Tutup otomatis form dan tampilkan Toast Notification elegan
+      toggleModal();
+      showToast(isEdit ? "Data MOU berhasil diperbarui!" : "Data MOU baru berhasil disimpan!");
+    };
+
+    window.editData = function(index) {
+      editIndex = index;
+      const item = database[index];
+      document.getElementById('modal-title').innerText = "Edit Data Surat/MOU";
+      document.getElementById('periode').value = item.periode;
+      document.getElementById('no_surat').value = item.no_surat;
+      document.getElementById('tgl_surat').value = item.tgl_surat;
+      document.getElementById('nama_santri').value = item.nama_santri;
+      document.getElementById('jenjang').value = item.jenjang;
+      document.getElementById('kelas').value = item.kelas;
+      document.getElementById('nama_wali').value = item.nama_wali;
+      document.getElementById('no_hp').value = item.no_hp || '';
+      
+      document.getElementById('nominal').value = item.nominal;
+      document.getElementById('nominal_mask').value = new Intl.NumberFormat('id-ID').format(item.nominal);
+
+      document.getElementById('jenis_tunggakan').value = item.jenis_tunggakan;
+      document.getElementById('jatuh_tempo').value = item.jatuh_tempo;
+      document.getElementById('status_info').value = item.status_info;
+      document.getElementById('progres').value = item.progres;
+      document.getElementById('tahapan').value = item.tahapan;
+      document.getElementById('keterangan').value = item.keterangan || '';
+      document.getElementById('modal').classList.remove('hidden');
+    };
+
+    window.deleteData = async function(index) {
+      if (confirm("Apakah Anda yakin ingin menghapus data surat ini?")) {
+        if (isFirebaseActive && db && database[index].firebaseId) {
+          try {
+            await deleteDoc(doc(db, "mou_tunggakan", database[index].firebaseId));
+          } catch (err) {
+            console.error("Gagal hapus di Firebase:", err);
+          }
+        }
+        database.splice(index, 1);
+        saveToLocalStorage();
+        renderTable();
+        showToast("Data MOU berhasil dihapus.", "info");
+      }
+    };
+
+    // --- 5. CETAK SATUAN DENGAN LOGO & TTD PROFIL PROPORSIONAL ---
+    window.cetakSuratSatuan = function(index) {
+      const item = database[index];
+      
+      document.getElementById('sp-instansi-nama').innerText = instituteProfile.nama_lembaga;
+      document.getElementById('sp-instansi-alamat').innerText = instituteProfile.alamat;
+      document.getElementById('sp-teks-lembaga').innerText = instituteProfile.nama_lembaga;
+      
+      const spLogoImg = document.getElementById('sp-logo-img');
+      if (instituteProfile.logo_base64) {
+        spLogoImg.src = instituteProfile.logo_base64;
+        spLogoImg.classList.remove('hidden');
+      } else {
+        spLogoImg.classList.add('hidden');
+      }
+
+      const spTtdImg = document.getElementById('sp-ttd-img');
+      if (instituteProfile.ttd_base64) {
+        spTtdImg.src = instituteProfile.ttd_base64;
+        spTtdImg.classList.remove('hidden');
+      } else {
+        spTtdImg.classList.add('hidden');
+      }
+
+      document.getElementById('sp-ttd-bendahara').innerText = instituteProfile.nama_bendahara || 'Bendahara Ma\'had';
+      document.getElementById('sp-niy-bendahara').innerText = instituteProfile.niy_bendahara || '-';
+
+      document.getElementById('sp-no-surat').innerText = item.no_surat;
+      document.getElementById('sp-nama-wali').innerText = item.nama_wali;
+      document.getElementById('sp-nama-santri').innerText = item.nama_santri;
+      document.getElementById('sp-jenjang-kelas').innerText = `${item.jenjang} / Kelas ${item.kelas}`;
+      document.getElementById('sp-jenis').innerText = item.jenis_tunggakan;
+      document.getElementById('sp-nominal').innerText = formatRupiah(item.nominal);
+      document.getElementById('sp-tempo').innerText = item.jatuh_tempo;
+      document.getElementById('sp-tahapan').innerText = item.tahapan;
+      document.getElementById('sp-catatan').innerText = item.keterangan || '-';
+      document.getElementById('sp-tgl-surat').innerText = item.tgl_surat;
+      document.getElementById('sp-ttd-wali').innerText = item.nama_wali;
+
+      const template = document.getElementById('surat-satuan-template');
+      template.classList.remove('hidden');
+      window.print();
+      template.classList.add('hidden');
+    };
+
+    window.sendWA = function(index) {
+      const item = database[index];
+      if (!item.no_hp) {
+        showToast("Nomor WhatsApp belum terdaftar untuk santri ini.", "error");
+        return;
+      }
+      
+      let cleanPhone = item.no_hp.replace(/[^0-9]/g, '');
+      if (cleanPhone.startsWith('0')) cleanPhone = '62' + cleanPhone.slice(1);
+
+      const pesan = `Assalamu'alaikum Warahmatullahi Wabarakatuh.%0A%0AYth. Bapak/Ibu *${item.nama_wali}*, wali dari ananda *${item.nama_santri}* (${item.jenjang}).%0A%0AMengingatkan perihal surat perjanjian/MOU tunggakan pembayaran *${item.jenis_tunggakan}* sebesar *${formatRupiah(item.nominal)}* dengan batas jatuh tempo pada tanggal *${item.jatuh_tempo}*.%0A%0AMohon konfirmasinya jika sudah melakukan penyelesaian atau cicilan.%0AJazakumullahu khairan.%0A_${instituteProfile.nama_bendahara} - Bendahara ${instituteProfile.nama_lembaga}_`;
+      window.open(`https://wa.me/${cleanPhone}?text=${pesan}`, '_blank');
+    };
+
+    // --- 6. EKSPOR FILE ---
+    window.exportToExcel = function() {
+      const filteredData = getFilteredData();
+      const excelData = filteredData.map((item, idx) => ({
+        "No": idx + 1,
+        "No. Surat": item.no_surat,
+        "Periode": item.periode,
+        "Tanggal Surat": item.tgl_surat,
+        "Nama Santri": item.nama_santri,
+        "Jenjang": item.jenjang,
+        "Kelas": item.kelas,
+        "Nama Wali": item.nama_wali,
+        "No. WhatsApp": item.no_hp || '-',
+        "Jenis Tunggakan": item.jenis_tunggakan,
+        "Nominal (Rp)": item.nominal,
+        "Jatuh Tempo": item.jatuh_tempo,
+        "Status Info Pusat": item.status_info,
+        "Progres": item.progres,
+        "Tahapan": item.tahapan,
+        "Keterangan": item.keterangan || '-'
+      }));
+      const ws = XLSX.utils.json_to_sheet(excelData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Rekap MOU");
+      XLSX.writeFile(wb, `SI_MOU_Rekap_${new Date().toISOString().slice(0,10)}.xlsx`);
+      showToast("Data Excel berhasil diekspor!");
+    };
+
+    window.exportToPDF = function() {
+      document.getElementById('pdf-nama-lembaga').innerText = `Laporan Rekapitulasi SI-MOU & Perjanjian Tunggakan Santri`;
+      document.getElementById('pdf-brand-lembaga').innerText = `${instituteProfile.nama_lembaga} (${instituteProfile.singkatan})`;
+      document.getElementById('pdf-alamat-lembaga').innerText = instituteProfile.alamat;
+      document.getElementById('pdf-tgl-cetak').innerText = new Date().toLocaleDateString('id-ID', { dateStyle: 'full' });
+
+      const pdfLogo = document.getElementById('pdf-logo-img');
+      if (instituteProfile.logo_base64) {
+        pdfLogo.src = instituteProfile.logo_base64;
+        pdfLogo.classList.remove('hidden');
+      } else {
+        pdfLogo.classList.add('hidden');
+      }
+
+      const pdfTtd = document.getElementById('pdf-ttd-img');
+      if (instituteProfile.ttd_base64) {
+        pdfTtd.src = instituteProfile.ttd_base64;
+        pdfTtd.classList.remove('hidden');
+      } else {
+        pdfTtd.classList.add('hidden');
+      }
+
+      document.getElementById('pdf-nama-bendahara').innerText = instituteProfile.nama_bendahara || 'Bendahara Ma\'had';
+      document.getElementById('pdf-niy-bendahara').innerText = instituteProfile.niy_bendahara || '...........................................';
+      document.getElementById('pdf-nama-kepala').innerText = instituteProfile.kepala_sekolah || 'Kepala Sekolah / Mudir';
+      document.getElementById('pdf-niy-kepala').innerText = instituteProfile.niy_kepala || '...........................................';
+
+      const pdfBody = document.getElementById('pdf-table-body');
+      pdfBody.innerHTML = '';
+      let totalMenunggak = 0, totalLunas = 0;
+      const filteredData = getFilteredData();
+
+      filteredData.forEach((item, idx) => {
+        if (item.progres === 'lunas') totalLunas += item.nominal;
+        else totalMenunggak += item.nominal;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="border border-gray-400 p-1 text-center">${idx + 1}</td>
+          <td class="border border-gray-400 p-1 font-bold">${item.no_surat}</td>
+          <td class="border border-gray-400 p-1">${item.periode}</td>
+          <td class="border border-gray-400 p-1">${item.nama_santri} (${item.jenjang}-${item.kelas})</td>
+          <td class="border border-gray-400 p-1">${item.nama_wali}</td>
+          <td class="border border-gray-400 p-1">${item.jenis_tunggakan}</td>
+          <td class="border border-gray-400 p-1 text-right">${formatRupiah(item.nominal)}</td>
+          <td class="border border-gray-400 p-1">${item.jatuh_tempo}</td>
+          <td class="border border-gray-400 p-1 text-center">${item.status_info}</td>
+          <td class="border border-gray-400 p-1 capitalize">${item.progres}</td>
+          <td class="border border-gray-400 p-1">${item.tahapan}</td>
+        `;
+        pdfBody.appendChild(tr);
+      });
+
+      document.getElementById('pdf-total-menunggak').innerText = formatRupiah(totalMenunggak);
+      document.getElementById('pdf-total-lunas').innerText = formatRupiah(totalLunas);
+      document.getElementById('pdf-total-records').innerText = `${filteredData.length} Dokumen`;
+
+      const element = document.getElementById('pdf-report-template');
+      element.parentElement.classList.remove('hidden');
+
+      const opt = {
+        margin: 0.3,
+        filename: `SI_MOU_Rekapitulasi_${new Date().toISOString().slice(0,10)}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+      };
+
+      showToast("Sedang membuat file PDF...");
+      html2pdf().set(opt).from(element).save().then(() => {
+        element.parentElement.classList.add('hidden');
+        showToast("PDF berhasil diunduh!");
+      });
+    };
+
+    window.backupJSON = function() {
+      const backupPayload = {
+        profile: instituteProfile,
+        data: database
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPayload, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `Backup_SI_MOU_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast("Backup data JSON berhasil diunduh!");
+    };
+
+    window.restoreJSON = function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const parsed = JSON.parse(evt.target.result);
+          if (Array.isArray(parsed)) {
+            database = parsed;
+          } else if (parsed && parsed.data) {
+            database = parsed.data;
+            if (parsed.profile) {
+              instituteProfile = parsed.profile;
+              localStorage.setItem('mou_institute_profile', JSON.stringify(instituteProfile));
+              applyProfileUI();
+            }
+          }
+          saveToLocalStorage();
+          renderTable();
+          showToast("Data JSON berhasil dipulihkan!");
+        } catch (err) {
+          showToast("Format file JSON tidak valid.", "error");
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    // Inisialisasi awal
+    applyProfileUI();
+    loadDataFromCloud();
+    renderTable();
+  </script>
+</body>
+</html>
