@@ -420,8 +420,8 @@
 
           <div>
             <label class="block font-semibold mb-1 text-slate-700">Nominal Total Kewajiban (Rp)</label>
-            <input type="text" id="nominal_mask" required placeholder="Contoh: 1.500.000" oninput="formatCurrencyInput(this)" class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-slate-800">
-            <input type="hidden" id="nominal" required>
+            <input type="text" id="nominal_mask" required placeholder="Contoh: 1.500.000" oninput="formatCurrencyInput(this)" onkeyup="formatCurrencyInput(this)" onchange="formatCurrencyInput(this)" class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-slate-800">
+            <input type="hidden" id="nominal">
             <p id="nominal_terbilang_preview" class="text-[10px] text-emerald-700 font-medium italic mt-1"></p>
           </div>
 
@@ -525,8 +525,8 @@
             </div>
             <div>
               <label class="block font-semibold mb-1 text-slate-700">Jumlah Bayar (Rp)</label>
-              <input type="text" id="inst_jumlah_mask" required placeholder="Contoh: 500.000" oninput="formatCurrencyInputCustom(this, 'inst_jumlah')" class="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-semibold">
-              <input type="hidden" id="inst_jumlah" required>
+              <input type="text" id="inst_jumlah_mask" required placeholder="Contoh: 500.000" oninput="formatCurrencyInputCustom(this, 'inst_jumlah')" onkeyup="formatCurrencyInputCustom(this, 'inst_jumlah')" onchange="formatCurrencyInputCustom(this, 'inst_jumlah')" class="w-full border rounded-lg p-2 outline-none focus:ring-2 focus:ring-emerald-500 bg-white font-semibold">
+              <input type="hidden" id="inst_jumlah">
             </div>
             <div>
               <label class="block font-semibold mb-1 text-slate-700">Penerima / Petugas</label>
@@ -1335,17 +1335,31 @@
       if (modal.classList.contains('hidden')) {
         document.getElementById('mou-form').reset();
         document.getElementById('nominal').value = '';
+        document.getElementById('nominal_mask').value = '';
         document.getElementById('nominal_terbilang_preview').innerText = '';
         editIndex = null;
         document.getElementById('modal-title').innerText = "Tambah Data Surat/MOU";
       } else {
         if (editIndex === null) {
+          document.getElementById('mou-form').reset();
+          document.getElementById('nominal').value = '';
+          document.getElementById('nominal_mask').value = '';
+          document.getElementById('nominal_terbilang_preview').innerText = '';
           const now = new Date();
           const yyyy = now.getFullYear();
           const mm = String(now.getMonth() + 1).padStart(2, '0');
           const dd = String(now.getDate()).padStart(2, '0');
           document.getElementById('periode').value = `${yyyy}-${mm}`;
           document.getElementById('tgl_surat').value = `${yyyy}-${mm}-${dd}`;
+
+          // Default jatuh tempo 30 hari ke depan
+          const due = new Date();
+          due.setDate(due.getDate() + 30);
+          const dueY = due.getFullYear();
+          const dueM = String(due.getMonth() + 1).padStart(2, '0');
+          const dueD = String(due.getDate()).padStart(2, '0');
+          document.getElementById('jatuh_tempo').value = `${dueY}-${dueM}-${dueD}`;
+
           autoGenerateNoSurat();
         }
       }
@@ -1406,35 +1420,41 @@
       updateImagePreviews();
     };
 
-    window.saveProfile = async function(e) {
-      e.preventDefault();
-      instituteProfile = {
-        nama_lembaga: document.getElementById('prof_nama_lembaga').value,
-        singkatan: document.getElementById('prof_singkatan').value,
-        alamat: document.getElementById('prof_alamat').value,
-        kepala_sekolah: document.getElementById('prof_kepala_sekolah').value,
-        niy_kepala: document.getElementById('prof_niy_kepala').value,
-        nama_bendahara: document.getElementById('prof_nama_bendahara').value,
-        niy_bendahara: document.getElementById('prof_niy_bendahara').value,
-        logo_base64: tempLogoBase64,
-        ttd_base64: tempTtdBase64,
-        pin_enabled: document.getElementById('prof_pin_enabled').checked,
-        security_pin: document.getElementById('prof_security_pin').value || '123456'
-      };
+    window.saveProfile = function(e) {
+      if (e) e.preventDefault();
+      try {
+        instituteProfile = {
+          nama_lembaga: document.getElementById('prof_nama_lembaga').value || '',
+          singkatan: document.getElementById('prof_singkatan').value || '',
+          alamat: document.getElementById('prof_alamat').value || '',
+          kepala_sekolah: document.getElementById('prof_kepala_sekolah').value || '',
+          niy_kepala: document.getElementById('prof_niy_kepala').value || '',
+          nama_bendahara: document.getElementById('prof_nama_bendahara').value || '',
+          niy_bendahara: document.getElementById('prof_niy_bendahara').value || '',
+          logo_base64: tempLogoBase64 || '',
+          ttd_base64: tempTtdBase64 || '',
+          pin_enabled: Boolean(document.getElementById('prof_pin_enabled').checked),
+          security_pin: document.getElementById('prof_security_pin').value || '123456'
+        };
 
-      localStorage.setItem('mou_institute_profile', JSON.stringify(instituteProfile));
+        localStorage.setItem('mou_institute_profile', JSON.stringify(instituteProfile));
+        applyProfileUI();
+        toggleProfileModal();
+        showToast("Profil Lembaga & Tanda Tangan berhasil disimpan!");
 
-      if (isFirebaseActive && db) {
-        try {
-          await setDoc(doc(db, "mou_settings", "profile"), instituteProfile);
-        } catch (err) {
-          console.error("Gagal simpan profil ke Firestore:", err);
+        if (isFirebaseActive && db) {
+          (async () => {
+            try {
+              await setDoc(doc(db, "mou_settings", "profile"), instituteProfile);
+            } catch (err) {
+              console.warn("Gagal simpan profil ke Firestore:", err);
+            }
+          })();
         }
+      } catch (err) {
+        console.error("Gagal simpan profil:", err);
+        showToast("Gagal menyimpan profil: " + err.message, "error");
       }
-
-      applyProfileUI();
-      toggleProfileModal();
-      showToast("Profil Lembaga & Tanda Tangan berhasil disimpan!");
     };
 
     function applyProfileUI() {
@@ -1804,57 +1824,86 @@
     }
 
     // --- 10. CRUD DATA MOU ---
-    window.saveData = async function(e) {
-      e.preventDefault();
-      const nominalClean = Number(document.getElementById('nominal').value || 0);
+    window.saveData = function(e) {
+      if (e) e.preventDefault();
+      
+      try {
+        const rawNominal = (document.getElementById('nominal').value || '').trim() || 
+                           (document.getElementById('nominal_mask').value || '').replace(/[^0-9]/g, '');
+        const nominalClean = Number(rawNominal) || 0;
 
-      const isEdit = editIndex !== null;
-      const existingCicilan = isEdit ? (database[editIndex].riwayat_cicilan || []) : [];
-
-      const newItem = {
-        id: isEdit ? database[editIndex].id : Date.now(),
-        periode: document.getElementById('periode').value,
-        no_surat: document.getElementById('no_surat').value,
-        tgl_surat: document.getElementById('tgl_surat').value,
-        nama_santri: document.getElementById('nama_santri').value,
-        jenjang: document.getElementById('jenjang').value,
-        kelas: document.getElementById('kelas').value,
-        nama_wali: document.getElementById('nama_wali').value,
-        no_hp: document.getElementById('no_hp').value,
-        nominal: nominalClean,
-        jenis_tunggakan: document.getElementById('jenis_tunggakan').value,
-        jatuh_tempo: document.getElementById('jatuh_tempo').value,
-        status_info: document.getElementById('status_info').value,
-        progres: document.getElementById('progres').value,
-        tahapan: document.getElementById('tahapan').value,
-        keterangan: document.getElementById('keterangan').value,
-        riwayat_cicilan: existingCicilan
-      };
-
-      if (isFirebaseActive && db) {
-        try {
-          if (isEdit && database[editIndex].firebaseId) {
-            await updateDoc(doc(db, "mou_tunggakan", database[editIndex].firebaseId), newItem);
-            newItem.firebaseId = database[editIndex].firebaseId;
-          } else {
-            const docRef = await addDoc(collection(db, "mou_tunggakan"), newItem);
-            newItem.firebaseId = docRef.id;
-          }
-        } catch (err) {
-          console.error("Gagal simpan ke Firebase:", err);
+        if (nominalClean <= 0) {
+          showToast("Silakan masukkan nominal kewajiban yang valid (lebih dari 0).", "error");
+          document.getElementById('nominal_mask').focus();
+          return;
         }
-      }
 
-      if (isEdit) {
-        database[editIndex] = newItem;
-      } else {
-        database.push(newItem);
-      }
+        const isEdit = editIndex !== null && editIndex >= 0 && editIndex < database.length;
+        const existingCicilan = isEdit ? (database[editIndex].riwayat_cicilan || []) : [];
+        const existingId = isEdit ? database[editIndex].id : Date.now();
+        const existingFirebaseId = isEdit ? database[editIndex].firebaseId : null;
 
-      saveToLocalStorage();
-      renderTable();
-      toggleModal();
-      showToast(isEdit ? "Data MOU berhasil diperbarui!" : "Data MOU baru berhasil disimpan!");
+        const newItem = {
+          id: existingId,
+          periode: document.getElementById('periode').value || '',
+          no_surat: document.getElementById('no_surat').value || '',
+          tgl_surat: document.getElementById('tgl_surat').value || '',
+          nama_santri: document.getElementById('nama_santri').value || '',
+          jenjang: document.getElementById('jenjang').value || 'MMTQ PUTRA',
+          kelas: document.getElementById('kelas').value || '1',
+          nama_wali: document.getElementById('nama_wali').value || '',
+          no_hp: document.getElementById('no_hp').value || '',
+          nominal: nominalClean,
+          jenis_tunggakan: document.getElementById('jenis_tunggakan').value || 'IAK',
+          jatuh_tempo: document.getElementById('jatuh_tempo').value || '',
+          status_info: document.getElementById('status_info').value || 'BELUM INFO',
+          progres: document.getElementById('progres').value || 'menunggak',
+          tahapan: document.getElementById('tahapan').value || 'tahap ke-1',
+          keterangan: document.getElementById('keterangan').value || '',
+          riwayat_cicilan: existingCicilan
+        };
+
+        if (existingFirebaseId) {
+          newItem.firebaseId = existingFirebaseId;
+        }
+
+        // 1. Simpan ke database lokal segera (Local-First / Optimistic UI)
+        if (isEdit) {
+          database[editIndex] = newItem;
+        } else {
+          database.unshift(newItem); // Tambah di urutan teratas agar langsung tampil di halaman 1
+        }
+
+        // 2. Simpan ke LocalStorage segera
+        saveToLocalStorage();
+
+        // 3. Render ulang tabel & seluruh perhitungan dashboard secara instan
+        renderTable();
+
+        // 4. Tutup modal & tampilkan toast sukses
+        toggleModal();
+        showToast(isEdit ? "Data MOU berhasil diperbarui!" : "Data MOU baru berhasil disimpan dan masuk ke perhitungan!");
+
+        // 5. Sinkronisasi ke Cloud Firestore di latar belakang (tanpa memblokir antarmuka)
+        if (isFirebaseActive && db) {
+          (async () => {
+            try {
+              if (isEdit && newItem.firebaseId) {
+                await updateDoc(doc(db, "mou_tunggakan", newItem.firebaseId), newItem);
+              } else {
+                const docRef = await addDoc(collection(db, "mou_tunggakan"), newItem);
+                newItem.firebaseId = docRef.id;
+                saveToLocalStorage();
+              }
+            } catch (cloudErr) {
+              console.warn("Sinkronisasi cloud Firestore tertunda/gagal:", cloudErr);
+            }
+          })();
+        }
+      } catch (err) {
+        console.error("Terjadi kesalahan saat menyimpan data MOU:", err);
+        showToast("Terjadi kesalahan saat memproses data: " + err.message, "error");
+      }
     };
 
     window.editData = function(index) {
@@ -1884,14 +1933,24 @@
     };
 
     function proceedDeleteData(index) {
-      if (confirm(`Apakah Anda yakin ingin menghapus data surat ${database[index].no_surat}?`)) {
-        if (isFirebaseActive && db && database[index].firebaseId) {
-          deleteDoc(doc(db, "mou_tunggakan", database[index].firebaseId)).catch(e => console.error(e));
-        }
+      if (index === null || index === undefined || !database[index]) return;
+      const itemToDelete = database[index];
+      if (confirm(`Apakah Anda yakin ingin menghapus data surat ${itemToDelete.no_surat}?`)) {
+        const deletedFirebaseId = itemToDelete.firebaseId;
         database.splice(index, 1);
         saveToLocalStorage();
         renderTable();
         showToast("Data MOU berhasil dihapus.", "info");
+
+        if (isFirebaseActive && db && deletedFirebaseId) {
+          (async () => {
+            try {
+              await deleteDoc(doc(db, "mou_tunggakan", deletedFirebaseId));
+            } catch (e) {
+              console.warn("Gagal hapus di cloud Firestore:", e);
+            }
+          })();
+        }
       }
     }
 
@@ -1956,29 +2015,33 @@
       });
     }
 
-    window.saveInstallment = async function(e) {
-      e.preventDefault();
-      if (activeInstallmentIndex === null) return;
+    window.saveInstallment = function(e) {
+      if (e) e.preventDefault();
+      if (activeInstallmentIndex === null || !database[activeInstallmentIndex]) return;
       const item = database[activeInstallmentIndex];
 
-      const jumlahBayar = Number(document.getElementById('inst_jumlah').value || 0);
+      const rawJumlah = (document.getElementById('inst_jumlah').value || '').trim() ||
+                        (document.getElementById('inst_jumlah_mask').value || '').replace(/[^0-9]/g, '');
+      const jumlahBayar = Number(rawJumlah) || 0;
       if (jumlahBayar <= 0) {
         showToast("Jumlah pembayaran harus lebih dari 0", "error");
+        document.getElementById('inst_jumlah_mask').focus();
         return;
       }
 
       const year = new Date().getFullYear();
       const brand = instituteProfile.singkatan || 'MIAS';
+      if (!Array.isArray(item.riwayat_cicilan)) item.riwayat_cicilan = [];
       const seqKwt = String((item.riwayat_cicilan.length + 1)).padStart(3, '0');
       const noKuitansi = `KWT/${brand}/${year}/${seqKwt}`;
 
       const newCicilan = {
         id: 'c_' + Date.now(),
         no_kuitansi: noKuitansi,
-        tanggal: document.getElementById('inst_tanggal').value,
+        tanggal: document.getElementById('inst_tanggal').value || new Date().toISOString().slice(0, 10),
         jumlah: jumlahBayar,
-        penerima: document.getElementById('inst_penerima').value,
-        catatan: document.getElementById('inst_catatan').value
+        penerima: document.getElementById('inst_penerima').value || instituteProfile.nama_bendahara,
+        catatan: document.getElementById('inst_catatan').value || ''
       };
 
       item.riwayat_cicilan.push(newCicilan);
@@ -1994,17 +2057,6 @@
         item.progres = "cicilan berjalan";
       }
 
-      if (isFirebaseActive && db && item.firebaseId) {
-        try {
-          await updateDoc(doc(db, "mou_tunggakan", item.firebaseId), {
-            riwayat_cicilan: item.riwayat_cicilan,
-            progres: item.progres
-          });
-        } catch (err) {
-          console.error(err);
-        }
-      }
-
       saveToLocalStorage();
       renderInstallmentUI();
       renderTable();
@@ -2014,9 +2066,22 @@
       document.getElementById('inst_jumlah_mask').value = '';
       document.getElementById('inst_jumlah').value = '';
       document.getElementById('inst_catatan').value = '';
+
+      if (isFirebaseActive && db && item.firebaseId) {
+        (async () => {
+          try {
+            await updateDoc(doc(db, "mou_tunggakan", item.firebaseId), {
+              riwayat_cicilan: item.riwayat_cicilan,
+              progres: item.progres
+            });
+          } catch (err) {
+            console.warn("Gagal simpan cicilan ke cloud Firestore:", err);
+          }
+        })();
+      }
     };
 
-    window.deleteInstallment = async function(cicilanIdx) {
+    window.deleteInstallment = function(cicilanIdx) {
       if (confirm("Hapus data pembayaran ini?")) {
         const item = database[activeInstallmentIndex];
         item.riwayat_cicilan.splice(cicilanIdx, 1);
@@ -2029,21 +2094,23 @@
           item.progres = "cicilan berjalan";
         }
 
-        if (isFirebaseActive && db && item.firebaseId) {
-          try {
-            await updateDoc(doc(db, "mou_tunggakan", item.firebaseId), {
-              riwayat_cicilan: item.riwayat_cicilan,
-              progres: item.progres
-            });
-          } catch (err) {
-            console.error(err);
-          }
-        }
-
         saveToLocalStorage();
         renderInstallmentUI();
         renderTable();
         showToast("Catatan pembayaran berhasil dihapus.", "info");
+
+        if (isFirebaseActive && db && item.firebaseId) {
+          (async () => {
+            try {
+              await updateDoc(doc(db, "mou_tunggakan", item.firebaseId), {
+                riwayat_cicilan: item.riwayat_cicilan,
+                progres: item.progres
+              });
+            } catch (err) {
+              console.warn("Gagal hapus cicilan di cloud Firestore:", err);
+            }
+          })();
+        }
       }
     };
 
