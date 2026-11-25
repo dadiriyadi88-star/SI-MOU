@@ -208,6 +208,9 @@
 
       <p class="text-[10px] uppercase font-bold tracking-wider text-emerald-400 px-3 pt-3 mb-2">Manajemen Data</p>
       
+      <button onclick="toggleFirebaseModal()" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition font-semibold">
+        <i class="fas fa-cloud-arrow-up w-4 text-cyan-400 text-center"></i> Database Firebase Cloud
+      </button>
       <button onclick="exportToExcel()" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition">
         <i class="fas fa-file-excel w-4 text-emerald-400 text-center"></i> Ekspor ke Excel (.xlsx)
       </button>
@@ -232,15 +235,18 @@
       </button>
     </div>
 
-    <!-- Firebase Connection Badge -->
-    <div class="p-4 border-t border-emerald-900 bg-emerald-950/60 text-[11px]">
+    <!-- Firebase Connection Badge (Interaktif & Dapat Diklik) -->
+    <div onclick="toggleFirebaseModal()" class="p-3.5 border-t border-emerald-900 bg-emerald-950/80 text-[11px] cursor-pointer hover:bg-emerald-900/60 transition" title="Klik untuk membuka Pengaturan Firebase">
       <div class="flex items-center justify-between">
-        <span class="text-emerald-300">Penyimpanan:</span>
+        <span class="text-emerald-300 font-medium">Database:</span>
         <span id="db-indicator" class="flex items-center gap-1.5 text-amber-400 font-semibold">
           <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> LocalStorage
         </span>
       </div>
-      <p id="db-details" class="text-[10px] text-emerald-400 mt-1">Siap Digunakan Offline & Online</p>
+      <div class="flex items-center justify-between mt-1 text-[10px]">
+        <p id="db-details" class="text-emerald-400">Siap Digunakan</p>
+        <span class="text-emerald-300 underline font-semibold flex items-center gap-1">Kelola <i class="fas fa-chevron-right text-[8px]"></i></span>
+      </div>
     </div>
   </aside>
 
@@ -940,6 +946,167 @@
   </div>
 
   
+  
+  <!-- ==================== MODAL PENGATURAN DATABASE FIREBASE CLOUD ==================== -->
+  <div id="firebase-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 md:p-6 z-50">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+      <!-- Modal Header -->
+      <div class="p-4 md:p-5 border-b flex justify-between items-center bg-gradient-to-r from-emerald-950 via-slate-900 to-emerald-900 text-white">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white text-lg shadow-md">
+            <i class="fas fa-fire"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              Database Firebase Cloud Firestore
+            </h3>
+            <p class="text-[11px] text-emerald-300">Sinkronisasi data online, cadangan cloud, dan multi-perangkat</p>
+          </div>
+        </div>
+        <button onclick="toggleFirebaseModal()" class="text-emerald-300 hover:text-white p-1 text-lg">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 md:p-6 overflow-y-auto space-y-5 text-xs">
+        
+        <!-- Status Box Koneksi Cloud -->
+        <div class="p-4 rounded-2xl border bg-slate-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Status Koneksi:</span>
+              <span id="fb-modal-status-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
+                Memeriksa...
+              </span>
+            </div>
+            <p class="text-slate-600 text-[11px]" id="fb-modal-status-detail">Project ID: <code class="font-bold text-slate-800" id="fb-modal-project-id">-</code></p>
+          </div>
+
+          <div class="flex items-center gap-2 self-end sm:self-auto">
+            <button type="button" onclick="testFirebaseConnection()" id="btn-test-fb" class="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-xl transition flex items-center gap-1.5 shadow-sm text-xs">
+              <i class="fas fa-plug text-[11px]"></i> Tes Koneksi
+            </button>
+          </div>
+        </div>
+
+        <!-- Tombol Aksi Cepat Sinkronisasi Massal (Upload & Download) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center gap-2 font-bold text-emerald-950 text-xs mb-1">
+                <i class="fas fa-cloud-arrow-up text-emerald-600 text-sm"></i> Upload Seluruh Data ke Cloud
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                Kirim seluruh data surat MOU, riwayat cicilan/kwitansi, profil lembaga, dan pengaturan akun saat ini ke Cloud Firestore.
+              </p>
+            </div>
+            <button type="button" onclick="syncAllToFirebase()" id="btn-sync-upload" class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl transition shadow flex items-center justify-center gap-2 text-xs">
+              <i class="fas fa-upload"></i> Unggah Semua Data Sekarang
+            </button>
+          </div>
+
+          <div class="p-4 rounded-2xl border border-blue-200 bg-blue-50/60 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center gap-2 font-bold text-blue-950 text-xs mb-1">
+                <i class="fas fa-cloud-arrow-down text-blue-600 text-sm"></i> Download / Tarik Data dari Cloud
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                Tarik data terbaru dari Cloud Firestore dan gabungkan secara aman ke dalam browser tanpa menghapus data lokal.
+              </p>
+            </div>
+            <button type="button" onclick="syncFromFirebase()" id="btn-sync-download" class="w-full py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl transition shadow flex items-center justify-center gap-2 text-xs">
+              <i class="fas fa-download"></i> Tarik Data dari Cloud
+            </button>
+          </div>
+        </div>
+
+        <!-- Pengaturan Kredensial Firebase Form -->
+        <div class="border rounded-2xl p-4 bg-white space-y-3">
+          <div class="flex items-center justify-between border-b pb-2.5">
+            <h4 class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+              <i class="fas fa-sliders text-emerald-600"></i> Konfigurasi Proyek Firebase Anda
+            </h4>
+            <button type="button" onclick="resetFirebaseSettings()" class="text-rose-600 hover:underline text-[11px] font-semibold flex items-center gap-1">
+              <i class="fas fa-undo"></i> Reset Default
+            </button>
+          </div>
+
+          <!-- Quick Paste Area -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+            <div class="flex justify-between items-center">
+              <label class="block font-bold text-slate-700 text-[11px]">Tempel Cuplikan Script (Quick Paste dari Firebase Console):</label>
+              <button type="button" onclick="extractPastedFirebaseConfig()" class="text-[10px] font-bold text-emerald-700 hover:underline flex items-center gap-1">
+                <i class="fas fa-magic"></i> Ekstrak Otomatis
+              </button>
+            </div>
+            <textarea id="fb_quick_paste" rows="2" placeholder="Tempel objek firebaseConfig di sini (misal: const firebaseConfig = { apiKey: '...', ... };)" class="w-full border rounded-lg p-2 font-mono text-[10px] outline-none focus:ring-2 focus:ring-emerald-500 bg-white"></textarea>
+          </div>
+
+          <!-- Rincian Field Konfigurasi -->
+          <form id="firebase-config-form" onsubmit="saveFirebaseSettings(event)" class="space-y-3 pt-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 text-[11px]">API Key</label>
+                <input type="text" id="fb_apiKey" required class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500 font-mono">
+              </div>
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 text-[11px]">Project ID</label>
+                <input type="text" id="fb_projectId" required class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500 font-mono">
+              </div>
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 text-[11px]">Auth Domain</label>
+                <input type="text" id="fb_authDomain" class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500 font-mono">
+              </div>
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 text-[11px]">Storage Bucket</label>
+                <input type="text" id="fb_storageBucket" class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500 font-mono">
+              </div>
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 text-[11px]">Messaging Sender ID</label>
+                <input type="text" id="fb_messagingSenderId" class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500 font-mono">
+              </div>
+              <div>
+                <label class="block font-semibold mb-1 text-slate-700 text-[11px]">App ID</label>
+                <input type="text" id="fb_appId" class="w-full border rounded-lg p-2 text-xs outline-none focus:ring-2 focus:ring-emerald-500 font-mono">
+              </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+              <button type="submit" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5 text-xs">
+                <i class="fas fa-save"></i> Simpan Konfigurasi & Hubungkan
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Panduan Aturan Keamanan (Rules) -->
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2">
+          <div class="flex items-center gap-2 font-bold text-amber-900 text-xs">
+            <i class="fas fa-circle-info text-amber-600"></i> Penting: Aturan Keamanan (Security Rules) Firestore
+          </div>
+          <p class="text-[11px] text-amber-800 leading-relaxed">
+            Pastikan pada tab <strong>Firestore Database &gt; Rules</strong> di Firebase Console Anda, aturan baca & tulis diizinkan agar aplikasi dapat menyimpan data:
+          </p>
+          <pre class="bg-amber-100/80 p-2.5 rounded-lg font-mono text-[10px] text-amber-950 overflow-x-auto border border-amber-300">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t bg-slate-50 flex justify-end">
+        <button type="button" onclick="toggleFirebaseModal()" class="px-5 py-2 border rounded-xl hover:bg-slate-200 font-semibold text-slate-700 text-xs transition">Tutup</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Pengaturan Akun & Ganti Kata Sandi -->
   <div id="password-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 md:p-6 z-50">
     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[92vh] flex flex-col overflow-hidden">
@@ -1304,11 +1471,11 @@
 
   <!-- SCRIPT APLIKASI UTAMA (HYBRID OFFLINE/ONLINE + FULL FEATURES) -->
   <script type="module">
-    // --- 1. FIREBASE CONFIGURATION & HYBRID HANDLING ---
+    // --- 1. FIREBASE CONFIGURATION & HYBRID HANDLING (DYNAMIC & INTERACTIVE) ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = {
+    const defaultFirebaseConfig = {
       apiKey: "AIzaSyCGYUqFOH48adsxQfCtBEgTZgZhkoEf0W4",
       authDomain: "si-mou-52513.firebaseapp.com",
       projectId: "si-mou-52513",
@@ -1317,25 +1484,296 @@
       appId: "1:888062905884:web:ec8e950b8cd20fa21a99d9"
     };
 
+    let activeFirebaseConfig = JSON.parse(localStorage.getItem('mou_firebase_config')) || defaultFirebaseConfig;
     let db = null;
     let isFirebaseActive = false;
+    let firebaseApp = null;
 
-    try {
-      if (firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("PASTE_API_KEY")) {
-        const app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        isFirebaseActive = true;
-        const ind = document.getElementById('db-indicator');
+    window.updateFirebaseStatusUI = function(isActive, statusText = "") {
+      const ind = document.getElementById('db-indicator');
+      const det = document.getElementById('db-details');
+      const modalBadge = document.getElementById('fb-modal-status-badge');
+      const modalDetail = document.getElementById('fb-modal-status-detail');
+      const modalProj = document.getElementById('fb-modal-project-id');
+
+      if (modalProj && activeFirebaseConfig) {
+        modalProj.innerText = activeFirebaseConfig.projectId || '(Belum diset)';
+      }
+
+      if (isActive) {
         if (ind) {
-          ind.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Cloud Firestore';
+          ind.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Cloud Firestore';
           ind.className = 'flex items-center gap-1.5 text-emerald-300 font-semibold';
         }
-        const det = document.getElementById('db-details');
-        if (det) det.innerText = 'Sinkronisasi Otomatis Aktif';
+        if (det) det.innerText = statusText || 'Sinkronisasi Otomatis Aktif';
+        if (modalBadge) {
+          modalBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800';
+          modalBadge.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Terhubung & Aktif';
+        }
+      } else {
+        if (ind) {
+          ind.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span> LocalStorage';
+          ind.className = 'flex items-center gap-1.5 text-amber-400 font-semibold';
+        }
+        if (det) det.innerText = statusText || 'Mode Lokal Offline';
+        if (modalBadge) {
+          modalBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800';
+          modalBadge.innerHTML = '<i class="fas fa-info-circle mr-1"></i> Mode Offline (LocalStorage)';
+        }
       }
-    } catch (err) {
-      console.warn("Menjalankan dalam mode lokal offline (LocalStorage):", err);
-    }
+    };
+
+    window.initFirebaseSystem = function() {
+      try {
+        if (activeFirebaseConfig && activeFirebaseConfig.apiKey && !activeFirebaseConfig.apiKey.includes("PASTE_API_KEY")) {
+          firebaseApp = initializeApp(activeFirebaseConfig);
+          db = getFirestore(firebaseApp);
+          isFirebaseActive = true;
+          updateFirebaseStatusUI(true, "Cloud Firestore Siap");
+        } else {
+          isFirebaseActive = false;
+          updateFirebaseStatusUI(false, "Konfigurasi Belum Diisi");
+        }
+      } catch (err) {
+        console.warn("Inisialisasi Firebase gagal, menggunakan LocalStorage:", err);
+        isFirebaseActive = false;
+        updateFirebaseStatusUI(false, "Mode Lokal Offline");
+      }
+    };
+
+    initFirebaseSystem();
+
+
+    // --- 1B. FUNGSI PENGELOLAAN DATABASE FIREBASE CLOUD ---
+    window.toggleFirebaseModal = function() {
+      const modal = document.getElementById('firebase-modal');
+      if (!modal) return;
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        // Tampilkan konfigurasi aktif
+        const cfg = activeFirebaseConfig || defaultFirebaseConfig;
+        document.getElementById('fb_apiKey').value = cfg.apiKey || '';
+        document.getElementById('fb_projectId').value = cfg.projectId || '';
+        document.getElementById('fb_authDomain').value = cfg.authDomain || '';
+        document.getElementById('fb_storageBucket').value = cfg.storageBucket || '';
+        document.getElementById('fb_messagingSenderId').value = cfg.messagingSenderId || '';
+        document.getElementById('fb_appId').value = cfg.appId || '';
+        document.getElementById('fb_quick_paste').value = '';
+        updateFirebaseStatusUI(isFirebaseActive);
+      }
+    };
+
+    window.extractPastedFirebaseConfig = function() {
+      const pasteText = document.getElementById('fb_quick_paste').value;
+      if (!pasteText.trim()) {
+        showToast("Silakan tempel teks konfigurasi terlebih dahulu.", "info");
+        return;
+      }
+
+      const keys = ['apiKey', 'projectId', 'authDomain', 'storageBucket', 'messagingSenderId', 'appId'];
+      let foundCount = 0;
+
+      keys.forEach(k => {
+        const regex = new RegExp(`['"]?${k}['"]?\s*[:=]\s*['"]([^'"]+)['"]`, 'i');
+        const match = pasteText.match(regex);
+        if (match && match[1]) {
+          const el = document.getElementById('fb_' + k);
+          if (el) {
+            el.value = match[1].trim();
+            foundCount++;
+          }
+        }
+      });
+
+      if (foundCount > 0) {
+        showToast(`Berhasil mengekstrak ${foundCount} parameter konfigurasi Firebase!`);
+      } else {
+        showToast("Format teks tidak dikenali. Silakan masukkan parameter secara manual.", "error");
+      }
+    };
+
+    window.saveFirebaseSettings = function(e) {
+      if (e) e.preventDefault();
+      try {
+        const newCfg = {
+          apiKey: (document.getElementById('fb_apiKey').value || '').trim(),
+          projectId: (document.getElementById('fb_projectId').value || '').trim(),
+          authDomain: (document.getElementById('fb_authDomain').value || '').trim(),
+          storageBucket: (document.getElementById('fb_storageBucket').value || '').trim(),
+          messagingSenderId: (document.getElementById('fb_messagingSenderId').value || '').trim(),
+          appId: (document.getElementById('fb_appId').value || '').trim()
+        };
+
+        if (!newCfg.apiKey || !newCfg.projectId) {
+          showToast("API Key dan Project ID wajib diisi!", "error");
+          return;
+        }
+
+        activeFirebaseConfig = newCfg;
+        localStorage.setItem('mou_firebase_config', JSON.stringify(activeFirebaseConfig));
+
+        // Inisialisasi ulang
+        initFirebaseSystem();
+        showToast("Konfigurasi Firebase berhasil disimpan!");
+        testFirebaseConnection();
+      } catch (err) {
+        console.error("Gagal simpan konfigurasi Firebase:", err);
+        showToast("Gagal menyimpan konfigurasi: " + err.message, "error");
+      }
+    };
+
+    window.resetFirebaseSettings = function() {
+      if (confirm("Reset konfigurasi ke setelan default aplikasi?")) {
+        localStorage.removeItem('mou_firebase_config');
+        activeFirebaseConfig = { ...defaultFirebaseConfig };
+        initFirebaseSystem();
+        toggleFirebaseModal();
+        toggleFirebaseModal();
+        showToast("Konfigurasi Firebase dikembalikan ke setelan default.");
+        testFirebaseConnection();
+      }
+    };
+
+    window.testFirebaseConnection = async function() {
+      const btn = document.getElementById('btn-test-fb');
+      const badge = document.getElementById('fb-modal-status-badge');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Menguji...';
+      }
+      if (badge) {
+        badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800';
+        badge.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-1"></i> Menghubungkan...';
+      }
+
+      try {
+        if (!isFirebaseActive || !db) {
+          initFirebaseSystem();
+        }
+        if (!db) {
+          throw new Error("Objek Firestore belum aktif. Silakan cek API Key & Project ID.");
+        }
+
+        // Tulis dan baca dokumen tes koneksi
+        const testRef = doc(db, "mou_settings", "test_connection");
+        await setDoc(testRef, {
+          last_test: new Date().toISOString(),
+          status: "connected"
+        });
+
+        const snap = await getDoc(testRef);
+        if (snap.exists()) {
+          updateFirebaseStatusUI(true, "Cloud Firestore Siap & Terhubung");
+          showToast("Koneksi ke Firebase Cloud Firestore Berhasil!");
+        } else {
+          throw new Error("Gagal membaca dokumen verifikasi Firestore.");
+        }
+      } catch (err) {
+        console.error("Gagal tes koneksi Firebase:", err);
+        updateFirebaseStatusUI(false, "Koneksi Gagal / Offline");
+        if (badge) {
+          badge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800';
+          badge.innerHTML = '<i class="fas fa-times-circle mr-1"></i> Gagal Terhubung';
+        }
+
+        if (err.message && (err.message.includes('permission-denied') || err.message.includes('insufficient permissions'))) {
+          showToast("Koneksi gagal: Izin Firestore Ditolak. Pastikan Security Rules diizinkan (allow read, write: if true).", "error");
+        } else {
+          showToast("Koneksi gagal: " + err.message, "error");
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-plug text-[11px] mr-1"></i> Tes Koneksi';
+        }
+      }
+    };
+
+    window.syncAllToFirebase = async function() {
+      if (!isFirebaseActive || !db) {
+        showToast("Firebase belum aktif atau belum terhubung. Silakan lakukan 'Tes Koneksi' terlebih dahulu.", "error");
+        return;
+      }
+
+      const btn = document.getElementById('btn-sync-upload');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Mengunggah Semua Data...';
+      }
+      showToast("Sedang mengunggah seluruh database ke Cloud Firebase...", "info");
+
+      try {
+        let countSuccess = 0;
+
+        // 1. Upload semua data MOU beserta riwayat cicilan/kwitansi
+        for (let i = 0; i < database.length; i++) {
+          const item = database[i];
+          if (item.firebaseId) {
+            await setDoc(doc(db, "mou_tunggakan", item.firebaseId), item);
+          } else {
+            const docRef = await addDoc(collection(db, "mou_tunggakan"), item);
+            item.firebaseId = docRef.id;
+          }
+          countSuccess++;
+        }
+
+        // 2. Upload Profil Lembaga & TTD
+        await setDoc(doc(db, "mou_settings", "profile"), instituteProfile);
+
+        // 3. Upload Pengaturan Akun & Password
+        await setDoc(doc(db, "mou_settings", "auth"), authConfig);
+
+        saveToLocalStorage();
+        renderTable();
+        updateFirebaseStatusUI(true, "Sinkronisasi Berhasil");
+
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+        }
+
+        showToast(`Alhamdulillah! ${countSuccess} Data MOU, Profil Lembaga, dan Akun berhasil disimpan ke Cloud Firebase!`);
+      } catch (err) {
+        console.error("Gagal sinkron massal ke Firebase:", err);
+        if (err.message && err.message.includes('permission-denied')) {
+          showToast("Gagal simpan: Izin Firestore ditolak! Mohon periksa Security Rules di Firebase Console.", "error");
+        } else {
+          showToast("Gagal menyimpan ke Firebase: " + err.message, "error");
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-upload mr-1"></i> Unggah Semua Data Sekarang';
+        }
+      }
+    };
+
+    window.syncFromFirebase = async function() {
+      if (!isFirebaseActive || !db) {
+        showToast("Firebase belum aktif. Silakan lakukan 'Tes Koneksi' terlebih dahulu.", "error");
+        return;
+      }
+
+      const btn = document.getElementById('btn-sync-download');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Mengambil Data...';
+      }
+      showToast("Mengunduh data dari Cloud Firestore...", "info");
+
+      try {
+        await loadDataFromCloud();
+        renderTable();
+        showToast("Data dari Cloud Firestore berhasil ditarik dan digabungkan!");
+      } catch (err) {
+        console.error("Gagal tarik data:", err);
+        showToast("Gagal menarik data dari Cloud: " + err.message, "error");
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-download mr-1"></i> Tarik Data dari Cloud';
+        }
+      }
+    };
 
     // --- 2. SISTEM NOTIFIKASI TOAST ELEGAN ---
     window.showToast = function(message, type = 'success') {
