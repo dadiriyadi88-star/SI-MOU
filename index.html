@@ -11,6 +11,7 @@
   
   <!-- Libraries Ekspor & Grafik -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
@@ -78,6 +79,81 @@
 </head>
 <body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex">
 
+  <!-- ==================== SCREEN LOGIN & AUTENTIKASI PENGGUNA ==================== -->
+  <div id="login-screen" class="fixed inset-0 z-[99999] bg-gradient-to-br from-emerald-950 via-slate-900 to-emerald-900 flex items-center justify-center p-4 backdrop-blur-md">
+    <!-- Ornamen Latar Belakang Berkilau -->
+    <div class="absolute -top-24 -left-24 w-96 h-96 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-teal-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative w-full max-w-md bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-6 sm:p-8 overflow-hidden">
+      <!-- Header Login dengan Logo Ma'had -->
+      <div class="text-center mb-6">
+        <div class="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-tr from-emerald-700 to-teal-600 p-1 shadow-lg flex items-center justify-center mb-3 overflow-hidden">
+          <div class="w-full h-full rounded-xl bg-white flex items-center justify-center overflow-hidden p-1.5" id="login-logo-box">
+            <i class="fas fa-school text-emerald-700 text-3xl" id="login-logo-icon"></i>
+            <img id="login-logo-img" class="w-full h-full object-contain hidden" alt="Logo">
+          </div>
+        </div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold tracking-wide uppercase mb-1">
+          <i class="fas fa-shield-halved text-emerald-600"></i> Sistem Keamanan Terpadu
+        </div>
+        <h2 class="text-2xl font-black text-slate-800 tracking-tight" id="login-app-title">SI-MOU</h2>
+        <p class="text-xs text-slate-500 font-medium mt-0.5" id="login-app-sub">Ma'had Imam Syafi'i Serang</p>
+      </div>
+
+      <!-- Pesan Peringatan Error -->
+      <div id="login-error-alert" class="hidden mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
+        <i class="fas fa-exclamation-triangle text-rose-500 flex-shrink-0 text-sm"></i>
+        <span id="login-error-text">Username atau Kata Sandi salah!</span>
+      </div>
+
+      <!-- Form Login -->
+      <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1.5">Username Petugas</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+              <i class="fas fa-user text-sm"></i>
+            </span>
+            <input type="text" id="login-username" required placeholder="Masukkan username" class="w-full pl-10 pr-3.5 py-2.5 border rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50 focus:bg-white transition">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1.5">Kata Sandi (Password)</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+              <i class="fas fa-lock text-sm"></i>
+            </span>
+            <input type="password" id="login-password" required placeholder="Masukkan kata sandi" class="w-full pl-10 pr-10 py-2.5 border rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-slate-50 focus:bg-white transition">
+            <button type="button" onclick="togglePasswordVisibility('login-password', 'login-eye-icon')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none">
+              <i class="fas fa-eye text-sm" id="login-eye-icon"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-[11px] pt-1">
+          <label class="flex items-center gap-2 text-slate-600 cursor-pointer select-none">
+            <input type="checkbox" id="login-remember" checked class="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5">
+            <span>Ingat sesi di perangkat ini</span>
+          </label>
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-700/30 transition transform active:scale-95 flex items-center justify-center gap-2 text-sm mt-2">
+          <i class="fas fa-arrow-right-to-bracket"></i>
+          <span>Masuk ke Aplikasi</span>
+        </button>
+
+        <div class="mt-4 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] text-slate-500 text-center">
+          <span class="font-bold text-slate-700">Akun Bawaan Awal:</span><br>
+          Username: <code class="bg-slate-200 px-1 py-0.5 rounded font-bold text-slate-800">admin</code> &bull; Password: <code class="bg-slate-200 px-1 py-0.5 rounded font-bold text-slate-800">admin123</code>
+          <p class="text-[10px] text-slate-400 mt-1 italic">(Password dapat diubah kapan saja di menu Pengaturan Akun)</p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
   <!-- Toast Container -->
   <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-3 pointer-events-none max-w-sm w-full px-3"></div>
 
@@ -107,6 +183,10 @@
     <div class="flex-1 overflow-y-auto px-4 py-5 space-y-1.5 text-xs">
       <p class="text-[10px] uppercase font-bold tracking-wider text-emerald-400 px-3 mb-2">Navigasi Utama</p>
       
+      <a href="#dashboard-top" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white bg-emerald-800 hover:bg-emerald-700 font-semibold transition shadow-sm mb-2 border border-emerald-700/50">
+        <i class="fas fa-gauge-high w-4 text-center text-emerald-300"></i> Dashboard Utama
+      </a>
+
       <button onclick="toggleModal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white p-2.5 rounded-xl font-semibold flex items-center gap-2.5 transition shadow-sm mb-2">
         <i class="fas fa-plus-circle text-sm"></i> Tambah Surat / MOU
       </button>
@@ -121,6 +201,9 @@
       <p class="text-[10px] uppercase font-bold tracking-wider text-emerald-400 px-3 pt-3 mb-2">Pengaturan Instansi</p>
       <button onclick="requestPinProtectedAction('profile')" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition">
         <i class="fas fa-school-flag w-4 text-emerald-400 text-center"></i> Profil & TTD Bendahara
+      </button>
+      <button onclick="togglePasswordModal()" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition">
+        <i class="fas fa-key w-4 text-amber-400 text-center"></i> Ganti Password & Akun
       </button>
 
       <p class="text-[10px] uppercase font-bold tracking-wider text-emerald-400 px-3 pt-3 mb-2">Manajemen Data</p>
@@ -139,6 +222,14 @@
         <span>Restore Data (JSON)</span>
         <input type="file" id="import-json" accept=".json" onchange="restoreJSON(event)" class="hidden">
       </label>
+    </div>
+
+    <!-- Tombol Keluar / Kunci Aplikasi -->
+    <div class="p-3 border-t border-emerald-900 bg-emerald-950/90">
+      <button onclick="lockApplication()" class="w-full flex items-center justify-center gap-2.5 px-3 py-2.5 rounded-xl text-rose-300 hover:bg-rose-900/60 hover:text-white transition border border-rose-800/60 text-xs font-semibold shadow-sm">
+        <i class="fas fa-arrow-right-from-bracket text-rose-400"></i>
+        <span>Kunci / Keluar Aplikasi</span>
+      </button>
     </div>
 
     <!-- Firebase Connection Badge -->
@@ -168,8 +259,14 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <button onclick="requestPinProtectedAction('profile')" class="text-emerald-200 hover:text-white p-1">
-          <i class="fas fa-user-cog"></i>
+        <button onclick="togglePasswordModal()" class="text-amber-300 hover:text-white p-1" title="Ganti Password">
+          <i class="fas fa-key"></i>
+        </button>
+        <button onclick="requestPinProtectedAction('profile')" class="text-emerald-200 hover:text-white p-1" title="Profil Instansi">
+          <i class="fas fa-school"></i>
+        </button>
+        <button onclick="lockApplication()" class="text-rose-300 hover:text-white p-1" title="Kunci Aplikasi">
+          <i class="fas fa-lock"></i>
         </button>
         <button onclick="toggleModal()" class="bg-emerald-500 px-2.5 py-1.5 rounded-lg text-xs font-semibold">
           <i class="fas fa-plus"></i> Tambah
@@ -180,49 +277,109 @@
     <!-- Main Container -->
     <main class="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
 
-      <!-- Header Desktop Banner -->
-      <div class="hidden md:flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-        <div class="flex items-center gap-4">
-          <div id="banner-logo-container" class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center p-1 overflow-hidden shadow-sm">
-            <i id="banner-logo-icon" class="fas fa-school text-emerald-700 text-2xl"></i>
-            <img id="banner-logo-img" class="w-full h-full object-contain hidden" alt="Logo">
+      <!-- Header Modern Colorful Hero Banner -->
+      <div id="dashboard-top" class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-900 text-white p-5 md:p-7 shadow-xl border border-emerald-600/40">
+        <!-- Latar Belakang Dekorasi Cahaya Modern -->
+        <div class="absolute -right-12 -bottom-12 w-64 h-64 bg-teal-400/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute right-1/3 -top-12 w-48 h-48 bg-amber-400/20 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -left-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
+          <div class="flex items-center gap-4">
+            <div id="banner-logo-container" class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center p-2 shadow-inner overflow-hidden flex-shrink-0">
+              <i id="banner-logo-icon" class="fas fa-school text-emerald-200 text-3xl"></i>
+              <img id="banner-logo-img" class="w-full h-full object-contain hidden" alt="Logo">
+            </div>
+            <div>
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/40 backdrop-blur-md border border-emerald-300/30 text-emerald-100 text-[11px] font-semibold mb-1.5">
+                <i class="fas fa-certificate text-amber-300"></i> Sistem Informasi MOU & Perjanjian Tunggakan
+              </div>
+              <h1 class="text-xl md:text-2xl font-black tracking-tight text-white" id="display-nama-lembaga">SI-MOU - Rekapitulasi MIAS</h1>
+              <p class="text-xs md:text-sm text-emerald-100/90 mt-0.5" id="display-alamat-lembaga">Ma'had Imam Syafi'i Serang | Jl. Raya Serang, Banten</p>
+            </div>
           </div>
-          <div>
-            <h1 class="text-xl font-bold text-slate-800" id="display-nama-lembaga">SI-MOU - Sistem Informasi MOU</h1>
-            <p class="text-xs text-slate-500 mt-0.5" id="display-alamat-lembaga">Pondok / Sekolah Ma'had Imam Syafi'i</p>
+
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="requestPinProtectedAction('profile')" class="bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 text-white px-3 py-2.5 rounded-xl text-xs font-semibold transition shadow-sm flex items-center gap-1.5">
+              <i class="fas fa-school-flag text-amber-300"></i> Profil Instansi
+            </button>
+            <button onclick="togglePasswordModal()" class="bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 text-white px-3 py-2.5 rounded-xl text-xs font-semibold transition shadow-sm flex items-center gap-1.5">
+              <i class="fas fa-key text-amber-300"></i> Akun & Password
+            </button>
+            <button onclick="lockApplication()" title="Kunci / Keluar Aplikasi" class="bg-rose-500/25 hover:bg-rose-600/40 backdrop-blur-md border border-rose-400/40 text-rose-100 hover:text-white px-3 py-2.5 rounded-xl text-xs font-semibold transition shadow-sm flex items-center gap-1.5">
+              <i class="fas fa-lock text-rose-300"></i> <span>Kunci</span>
+            </button>
+            <button onclick="toggleModal()" class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-900 font-bold px-4 py-2.5 rounded-xl text-xs shadow-lg transition flex items-center gap-2">
+              <i class="fas fa-plus-circle text-sm text-slate-900"></i> Tambah MOU
+            </button>
           </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="requestPinProtectedAction('profile')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2.5 rounded-xl text-xs font-semibold border transition flex items-center gap-2">
-            <i class="fas fa-school-flag text-emerald-700"></i> Profil Instansi
-          </button>
-          <button onclick="toggleModal()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow transition flex items-center gap-2">
-            <i class="fas fa-plus-circle text-sm"></i> Tambah Surat / MOU Baru
-          </button>
         </div>
       </div>
 
-      <!-- Stat Cards -->
+      <!-- Stat Cards (Vibrant, Colorful & Modern) -->
       <div id="statistik-area" class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-amber-500">
-          <p class="text-[11px] text-slate-500 uppercase font-semibold">Total Sisa Tunggakan</p>
-          <p id="stat-total-menunggak" class="text-lg md:text-xl font-bold text-amber-600 mt-1">Rp 0</p>
-          <span class="text-[10px] text-slate-400">Kewajiban belum terbayar</span>
+        <!-- Card 1: Total Sisa Tunggakan (Vibrant Amber / Orange) -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 md:p-5 text-white shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all">
+          <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-white/10 rounded-full blur-sm pointer-events-none"></div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-bold text-amber-100 uppercase tracking-wider">Total Sisa Tunggakan</span>
+            <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-sm shadow-sm">
+              <i class="fas fa-hand-holding-dollar"></i>
+            </div>
+          </div>
+          <p id="stat-total-menunggak" class="text-xl md:text-2xl font-black text-white tracking-tight">Rp 0</p>
+          <div class="mt-2.5 flex items-center justify-between text-[10px] text-amber-100/90 font-medium border-t border-white/20 pt-2">
+            <span>Kewajiban Tertunda</span>
+            <span class="bg-black/20 px-2 py-0.5 rounded-full font-bold">Tertunda</span>
+          </div>
         </div>
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-emerald-500">
-          <p class="text-[11px] text-slate-500 uppercase font-semibold">Total Masuk (Terbayar)</p>
-          <p id="stat-total-lunas" class="text-lg md:text-xl font-bold text-emerald-600 mt-1">Rp 0</p>
-          <span class="text-[10px] text-slate-400">Total cicilan & lunas</span>
+
+        <!-- Card 2: Total Masuk / Terbayar (Vibrant Emerald / Teal) -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-4 md:p-5 text-white shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all">
+          <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-white/10 rounded-full blur-sm pointer-events-none"></div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-bold text-emerald-100 uppercase tracking-wider">Total Masuk (Terbayar)</span>
+            <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-sm shadow-sm">
+              <i class="fas fa-circle-check"></i>
+            </div>
+          </div>
+          <p id="stat-total-lunas" class="text-xl md:text-2xl font-black text-white tracking-tight">Rp 0</p>
+          <div class="mt-2.5 flex items-center justify-between text-[10px] text-emerald-100/90 font-medium border-t border-white/20 pt-2">
+            <span>Total Cicilan & Lunas</span>
+            <span class="bg-black/20 px-2 py-0.5 rounded-full font-bold">Kas Masuk</span>
+          </div>
         </div>
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-blue-500">
-          <p class="text-[11px] text-slate-500 uppercase font-semibold">Total Dokumen MOU</p>
-          <p id="stat-count-surat" class="text-lg md:text-xl font-bold text-slate-700 mt-1">0 Data</p>
-          <span class="text-[10px] text-slate-400">Perjanjian terdaftar</span>
+
+        <!-- Card 3: Total Dokumen MOU (Vibrant Blue / Indigo) -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-4 md:p-5 text-white shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all">
+          <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-white/10 rounded-full blur-sm pointer-events-none"></div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-bold text-blue-100 uppercase tracking-wider">Total Dokumen MOU</span>
+            <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-sm shadow-sm">
+              <i class="fas fa-file-contract"></i>
+            </div>
+          </div>
+          <p id="stat-count-surat" class="text-xl md:text-2xl font-black text-white tracking-tight">0 Dokumen</p>
+          <div class="mt-2.5 flex items-center justify-between text-[10px] text-blue-100/90 font-medium border-t border-white/20 pt-2">
+            <span>Perjanjian Terdaftar</span>
+            <span class="bg-black/20 px-2 py-0.5 rounded-full font-bold">Arsip Aktif</span>
+          </div>
         </div>
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-rose-500">
-          <p class="text-[11px] text-slate-500 uppercase font-semibold">Belum Lapor Ke Pusat</p>
-          <p id="stat-count-belum-info" class="text-lg md:text-xl font-bold text-rose-600 mt-1">0 Data</p>
-          <span class="text-[10px] text-slate-400">Perlu konfirmasi pusat</span>
+
+        <!-- Card 4: Belum Lapor Ke Pusat (Vibrant Rose / Crimson) -->
+        <div class="relative overflow-hidden bg-gradient-to-br from-rose-600 to-pink-700 rounded-2xl p-4 md:p-5 text-white shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all">
+          <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-white/10 rounded-full blur-sm pointer-events-none"></div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-bold text-rose-100 uppercase tracking-wider">Belum Lapor Pusat</span>
+            <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-sm shadow-sm">
+              <i class="fas fa-bullhorn"></i>
+            </div>
+          </div>
+          <p id="stat-count-belum-info" class="text-xl md:text-2xl font-black text-white tracking-tight">0 Data</p>
+          <div class="mt-2.5 flex items-center justify-between text-[10px] text-rose-100/90 font-medium border-t border-white/20 pt-2">
+            <span>Perlu Konfirmasi</span>
+            <span class="bg-black/20 px-2 py-0.5 rounded-full font-bold">Tindak Lanjut</span>
+          </div>
         </div>
       </div>
 
@@ -782,6 +939,77 @@
     </div>
   </div>
 
+  
+  <!-- Modal Pengaturan Akun & Ganti Kata Sandi -->
+  <div id="password-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 md:p-6 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="p-4 md:p-5 border-b flex justify-between items-center bg-slate-50">
+        <div>
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <i class="fas fa-key text-amber-500"></i> Pengaturan Akun & Kata Sandi
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">Ubah username dan password login aplikasi</p>
+        </div>
+        <button onclick="togglePasswordModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times text-lg"></i></button>
+      </div>
+
+      <form id="change-password-form" onsubmit="savePasswordSettings(event)" class="p-4 md:p-6 overflow-y-auto space-y-4 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Nama Petugas / Bendahara</label>
+          <input type="text" id="setting_nama_petugas" placeholder="Contoh: Dadi Slamet Riyadi" class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500 font-medium">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Username Login</label>
+          <input type="text" id="setting_username" required placeholder="Contoh: admin" class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-slate-800">
+        </div>
+
+        <div class="border-t pt-3 space-y-3">
+          <p class="text-[11px] font-bold text-emerald-800 uppercase tracking-wide flex items-center gap-1.5">
+            <i class="fas fa-lock"></i> Perubahan Kata Sandi
+          </p>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Kata Sandi Saat Ini (Verifikasi)</label>
+            <div class="relative">
+              <input type="password" id="setting_current_pwd" required placeholder="Masukkan kata sandi lama" class="w-full border rounded-lg p-2.5 pr-10 outline-none focus:ring-2 focus:ring-emerald-500">
+              <button type="button" onclick="togglePasswordVisibility('setting_current_pwd', 'eye_current')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                <i class="fas fa-eye text-xs" id="eye_current"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Kata Sandi Baru</label>
+            <div class="relative">
+              <input type="password" id="setting_new_pwd" required minlength="4" placeholder="Minimal 4 karakter" class="w-full border rounded-lg p-2.5 pr-10 outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+              <button type="button" onclick="togglePasswordVisibility('setting_new_pwd', 'eye_new')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                <i class="fas fa-eye text-xs" id="eye_new"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Konfirmasi Kata Sandi Baru</label>
+            <div class="relative">
+              <input type="password" id="setting_confirm_pwd" required minlength="4" placeholder="Ulangi kata sandi baru" class="w-full border rounded-lg p-2.5 pr-10 outline-none focus:ring-2 focus:ring-emerald-500 font-semibold">
+              <button type="button" onclick="togglePasswordVisibility('setting_confirm_pwd', 'eye_confirm')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                <i class="fas fa-eye text-xs" id="eye_confirm"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 border-t pt-4">
+          <button type="button" onclick="togglePasswordModal()" class="px-4 py-2 border rounded-xl hover:bg-slate-100 font-semibold text-slate-600 transition">Batal</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-semibold shadow transition flex items-center gap-1.5">
+            <i class="fas fa-save"></i> Simpan Perubahan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Modal Verifikasi PIN Sensitif -->
   <div id="pin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 z-50">
     <div class="bg-white rounded-2xl shadow-2xl max-w-xs w-full p-5 space-y-4 text-center">
@@ -999,6 +1227,81 @@
     </div>
   </div>
 
+  
+  <!-- Modal Aksi Cepat Cetak & Unduh Dokumen (Surat MOU & Bukti Kwitansi: JPG & PDF) -->
+  <div id="doc-action-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 md:p-6 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="p-4 md:p-5 border-b flex justify-between items-center bg-slate-50">
+        <div>
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <i class="fas fa-print text-emerald-600"></i> Cetak & Unduh Berkas Dokumen
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5" id="doc-modal-subtitle">Pilihan cetak dan simpan format JPG & PDF</p>
+        </div>
+        <button onclick="toggleDocActionModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times text-lg"></i></button>
+      </div>
+
+      <div class="p-4 md:p-6 overflow-y-auto space-y-5 text-xs">
+        <!-- Bagian 1: Surat Perjanjian MOU -->
+        <div class="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                <i class="fas fa-file-contract"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-emerald-950 text-sm">Surat Perjanjian (MOU)</h4>
+                <p class="text-[11px] text-emerald-700 font-mono" id="doc-modal-no-surat"></p>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 bg-emerald-200/70 text-emerald-900 font-bold text-[10px] rounded-full">Resmi F4/A4</span>
+          </div>
+
+          <p class="text-slate-600 text-[11px] leading-relaxed">
+            Surat kesepakatan kewajiban santri lengkap dengan kop lembaga, rincian kewajiban, tanggal jatuh tempo, dan tanda tangan wali serta bendahara.
+          </p>
+
+          <div class="grid grid-cols-3 gap-2 pt-1">
+            <button onclick="cetakSuratFromDocModal()" class="flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-3 rounded-xl shadow-sm transition">
+              <i class="fas fa-print"></i> Cetak Fisik
+            </button>
+            <button onclick="unduhSuratPdfFromDocModal()" class="flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold py-2.5 px-3 rounded-xl shadow-sm transition">
+              <i class="fas fa-file-pdf"></i> Unduh PDF
+            </button>
+            <button onclick="unduhSuratJpgFromDocModal()" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-3 rounded-xl shadow-sm transition">
+              <i class="fas fa-file-image"></i> Simpan JPG
+            </button>
+          </div>
+        </div>
+
+        <!-- Bagian 2: Bukti Kwitansi Pembayaran -->
+        <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                <i class="fas fa-receipt"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-amber-950 text-sm">Bukti Kwitansi Pembayaran</h4>
+                <p class="text-[11px] text-amber-700" id="doc-modal-kwt-info">Rincian pembayaran & cicilan</p>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 bg-amber-200/70 text-amber-900 font-bold text-[10px] rounded-full">Kwitansi Sah</span>
+          </div>
+
+          <!-- Daftar Kwitansi yang ada -->
+          <div id="doc-modal-kwt-container" class="space-y-2.5">
+            <!-- Disuntikkan via JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4 border-t bg-slate-50 flex justify-end">
+        <button onclick="toggleDocActionModal()" class="px-5 py-2 border rounded-xl hover:bg-slate-200 font-semibold text-slate-700 text-xs transition">Tutup</button>
+      </div>
+    </div>
+  </div>
+
   <!-- SCRIPT APLIKASI UTAMA (HYBRID OFFLINE/ONLINE + FULL FEATURES) -->
   <script type="module">
     // --- 1. FIREBASE CONFIGURATION & HYBRID HANDLING ---
@@ -1166,74 +1469,100 @@
 
     let instituteProfile = JSON.parse(localStorage.getItem('mou_institute_profile')) || defaultProfile;
 
-    let database = JSON.parse(localStorage.getItem('mou_tunggakan_db')) || [
-      {
-        id: 1,
-        periode: "2026-01",
-        no_surat: "001/MIAS/MA'HAD-IS/I/I/2026",
-        tgl_surat: "2026-01-10",
-        nama_santri: "Ahmad Zaki",
-        jenjang: "MMTQ PUTRA",
-        kelas: "1",
-        nama_wali: "H. Abdullah",
-        no_hp: "081234567890",
-        nominal: 2500000,
-        jenis_tunggakan: "BIAYA PANGKAL",
-        jatuh_tempo: "2026-02-10",
-        status_info: "SUDAH INFO",
-        progres: "cicilan berjalan",
-        tahapan: "tahap ke-1",
-        keterangan: "Telah dibayar DP Rp 500.000",
-        riwayat_cicilan: [
-          {
-            id: "c1",
-            no_kuitansi: "KWT/MIAS/2026/001",
-            tanggal: "2026-01-12",
-            jumlah: 500000,
-            penerima: "Dadi Slamet Riyadi",
-            catatan: "DP Pendaftaran Awal"
-          }
-        ]
-      },
-      {
-        id: 2,
-        periode: "2026-02",
-        no_surat: "002/MIAS/MA'HAD-IS/I/II/2026",
-        tgl_surat: "2026-02-01",
-        nama_santri: "Aisyah Humaira",
-        jenjang: "MMTQ PUTRI",
-        kelas: "3",
-        nama_wali: "Rahmat Hidayat",
-        no_hp: "089876543210",
-        nominal: 1200000,
-        jenis_tunggakan: "DAFTAR ULANG",
-        jatuh_tempo: "2026-02-28",
-        status_info: "BELUM INFO",
-        progres: "menunggak",
-        tahapan: "tahap ke-2",
-        keterangan: "Menunggu panen bulan depan",
-        riwayat_cicilan: []
-      },
-      {
-        id: 3,
-        periode: "2026-02",
-        no_surat: "003/MIAS/MA'HAD-IS/I/II/2026",
-        tgl_surat: "2026-02-15",
-        nama_santri: "Faris Ali",
-        jenjang: "MTTQ",
-        kelas: "2",
-        nama_wali: "Umar Khattab",
-        no_hp: "085211223344",
-        nominal: 1800000,
-        jenis_tunggakan: "IAK",
-        jatuh_tempo: "2026-03-01",
-        status_info: "SUDAH INFO",
-        progres: "proses",
-        tahapan: "tahap ke-1",
-        keterangan: "-",
-        riwayat_cicilan: []
+    // --- 5B. SISTEM AUTENTIKASI, LOGIN & KATA SANDI (CONFIG) ---
+    const defaultAuth = {
+      username: "admin",
+      password: "admin123",
+      nama_petugas: "Bendahara Ma'had"
+    };
+
+    let authConfig = JSON.parse(localStorage.getItem('mou_auth_config')) || defaultAuth;
+
+    // Inisialisasi Data: Local-First (Menjamin data tidak hilang/ter-reset saat keluar aplikasi)
+    const savedDbStr = localStorage.getItem('mou_tunggakan_db');
+    let database = [];
+
+    if (savedDbStr !== null) {
+      try {
+        const parsed = JSON.parse(savedDbStr);
+        if (Array.isArray(parsed)) {
+          database = parsed;
+        }
+      } catch (err) {
+        console.error("Gagal membaca database lokal:", err);
       }
-    ];
+    } else {
+      // Data bawaan awal HANYA dimuat saat aplikasi pertama kali dibuka di browser baru
+      database = [
+        {
+          id: 1,
+          periode: "2026-01",
+          no_surat: "001/MIAS/MA'HAD-IS/I/I/2026",
+          tgl_surat: "2026-01-10",
+          nama_santri: "Ahmad Zaki",
+          jenjang: "MMTQ PUTRA",
+          kelas: "1",
+          nama_wali: "H. Abdullah",
+          no_hp: "081234567890",
+          nominal: 2500000,
+          jenis_tunggakan: "BIAYA PANGKAL",
+          jatuh_tempo: "2026-02-10",
+          status_info: "SUDAH INFO",
+          progres: "cicilan berjalan",
+          tahapan: "tahap ke-1",
+          keterangan: "Telah dibayar DP Rp 500.000",
+          riwayat_cicilan: [
+            {
+              id: "c1",
+              no_kuitansi: "KWT/MIAS/2026/001",
+              tanggal: "2026-01-12",
+              jumlah: 500000,
+              penerima: "Dadi Slamet Riyadi",
+              catatan: "DP Pendaftaran Awal"
+            }
+          ]
+        },
+        {
+          id: 2,
+          periode: "2026-02",
+          no_surat: "002/MIAS/MA'HAD-IS/I/II/2026",
+          tgl_surat: "2026-02-01",
+          nama_santri: "Aisyah Humaira",
+          jenjang: "MMTQ PUTRI",
+          kelas: "3",
+          nama_wali: "Rahmat Hidayat",
+          no_hp: "089876543210",
+          nominal: 1200000,
+          jenis_tunggakan: "DAFTAR ULANG",
+          jatuh_tempo: "2026-02-28",
+          status_info: "BELUM INFO",
+          progres: "menunggak",
+          tahapan: "tahap ke-2",
+          keterangan: "Menunggu panen bulan depan",
+          riwayat_cicilan: []
+        },
+        {
+          id: 3,
+          periode: "2026-02",
+          no_surat: "003/MIAS/MA'HAD-IS/I/II/2026",
+          tgl_surat: "2026-02-15",
+          nama_santri: "Faris Ali",
+          jenjang: "MTTQ",
+          kelas: "2",
+          nama_wali: "Umar Khattab",
+          no_hp: "085211223344",
+          nominal: 1800000,
+          jenis_tunggakan: "IAK",
+          jatuh_tempo: "2026-03-01",
+          status_info: "SUDAH INFO",
+          progres: "proses",
+          tahapan: "tahap ke-1",
+          keterangan: "-",
+          riwayat_cicilan: []
+        }
+      ];
+      localStorage.setItem('mou_tunggakan_db', JSON.stringify(database));
+    }
 
     // Pastikan struktur riwayat_cicilan ada pada setiap item migrasi lama
     database.forEach(item => {
@@ -1245,6 +1574,7 @@
     let editIndex = null;
     let activeInstallmentIndex = null;
     let activeWaIndex = null;
+    let activeDocIndex = null;
     let pendingProtectedAction = null;
     let quickFilterMode = '';
 
@@ -1259,29 +1589,100 @@
     let tempLogoBase64 = instituteProfile.logo_base64 || "";
     let tempTtdBase64 = instituteProfile.ttd_base64 || "";
 
-    // Sinkronisasi Cloud Firestore
+    // Sinkronisasi Cloud Firestore 2-Way Non-Destructive (ANTI HAPUS DATA LOKAL)
     async function loadDataFromCloud() {
       if (isFirebaseActive && db) {
         try {
+          // 1. Sinkronisasi Profil
           const profDoc = await getDoc(doc(db, "mou_settings", "profile"));
           if (profDoc.exists()) {
-            instituteProfile = { ...defaultProfile, ...profDoc.data() };
+            const cloudProf = profDoc.data();
+            instituteProfile = {
+              ...defaultProfile,
+              ...cloudProf,
+              logo_base64: cloudProf.logo_base64 || instituteProfile.logo_base64 || '',
+              ttd_base64: cloudProf.ttd_base64 || instituteProfile.ttd_base64 || ''
+            };
             localStorage.setItem('mou_institute_profile', JSON.stringify(instituteProfile));
             applyProfileUI();
           }
 
+          // Sinkronisasi data auth/password dari cloud jika ada
+          const authDoc = await getDoc(doc(db, "mou_settings", "auth"));
+          if (authDoc.exists()) {
+            authConfig = { ...defaultAuth, ...authDoc.data() };
+            localStorage.setItem('mou_auth_config', JSON.stringify(authConfig));
+          }
+
+          // 2. Sinkronisasi Data MOU (Smart Non-Destructive Merge)
           const snapshot = await getDocs(collection(db, "mou_tunggakan"));
           if (!snapshot.empty) {
-            database = snapshot.docs.map(d => {
+            const cloudDocs = snapshot.docs.map(d => {
               const data = d.data();
               if (!Array.isArray(data.riwayat_cicilan)) data.riwayat_cicilan = [];
               return { firebaseId: d.id, ...data };
             });
-            localStorage.setItem('mou_tunggakan_db', JSON.stringify(database));
-            renderTable();
+
+            // Mulai dari database lokal saat ini
+            let updated = false;
+            const currentDb = [...database];
+
+            // Pasangkan atau tambahkan dokumen dari cloud
+            cloudDocs.forEach(cDoc => {
+              const foundIdx = currentDb.findIndex(l => 
+                (l.firebaseId && l.firebaseId === cDoc.firebaseId) ||
+                (l.no_surat && cDoc.no_surat && l.no_surat === cDoc.no_surat)
+              );
+
+              if (foundIdx !== -1) {
+                // Pasangkan firebaseId jika lokal belum punya
+                if (!currentDb[foundIdx].firebaseId) {
+                  currentDb[foundIdx].firebaseId = cDoc.firebaseId;
+                  updated = true;
+                }
+              } else {
+                // Dokumen baru dari cloud yang belum ada di browser ini
+                currentDb.push(cDoc);
+                updated = true;
+              }
+            });
+
+            // Sebaliknya, upload data lokal yang belum ada di cloud
+            for (let i = 0; i < currentDb.length; i++) {
+              const localDoc = currentDb[i];
+              if (!localDoc.firebaseId) {
+                try {
+                  const newRef = await addDoc(collection(db, "mou_tunggakan"), localDoc);
+                  localDoc.firebaseId = newRef.id;
+                  updated = true;
+                } catch (upErr) {
+                  console.warn("Gagal sinkron lokal ke cloud:", upErr);
+                }
+              }
+            }
+
+            if (updated) {
+              database = currentDb;
+              saveToLocalStorage();
+              renderTable();
+            }
+          } else {
+            // Jika koleksi cloud masih kosong, cadangkan seluruh data lokal ke cloud
+            for (let i = 0; i < database.length; i++) {
+              const localDoc = database[i];
+              if (!localDoc.firebaseId) {
+                try {
+                  const newRef = await addDoc(collection(db, "mou_tunggakan"), localDoc);
+                  localDoc.firebaseId = newRef.id;
+                } catch (e) {
+                  console.warn(e);
+                }
+              }
+            }
+            saveToLocalStorage();
           }
         } catch (e) {
-          console.error("Gagal sinkron Firestore:", e);
+          console.warn("Sinkronisasi cloud Firestore dilewati, menggunakan data lokal:", e);
         }
       }
     }
@@ -1369,6 +1770,189 @@
       const sisa = Math.max(0, totalKewajiban - totalBayar);
       const pct = totalKewajiban > 0 ? Math.min(100, Math.round((totalBayar / totalKewajiban) * 100)) : 0;
       return { totalKewajiban, totalBayar, sisa, pct };
+    };
+
+
+    // --- 5C. FUNGSI AUTENTIKASI: LOGIN, KUNCI APLIKASI & GANTI PASSWORD ---
+    window.updateLoginBrandUI = function() {
+      const lTitle = document.getElementById('login-app-title');
+      const lSub = document.getElementById('login-app-sub');
+      const lLogoImg = document.getElementById('login-logo-img');
+      const lLogoIcon = document.getElementById('login-logo-icon');
+
+      if (lTitle && instituteProfile) {
+        lTitle.innerText = `SI-MOU ${instituteProfile.singkatan || 'MIAS'}`;
+      }
+      if (lSub && instituteProfile) {
+        lSub.innerText = instituteProfile.nama_lembaga || "Ma'had Imam Syafi'i Serang";
+      }
+      if (lLogoImg && lLogoIcon && instituteProfile) {
+        if (instituteProfile.logo_base64) {
+          lLogoImg.src = instituteProfile.logo_base64;
+          lLogoImg.classList.remove('hidden');
+          lLogoIcon.classList.add('hidden');
+        } else {
+          lLogoImg.classList.add('hidden');
+          lLogoIcon.classList.remove('hidden');
+        }
+      }
+    };
+
+    window.checkAuthSession = function() {
+      const sessionActive = sessionStorage.getItem('mou_auth_session') || localStorage.getItem('mou_auth_remember');
+      const loginScreen = document.getElementById('login-screen');
+      if (!loginScreen) return;
+
+      if (sessionActive) {
+        loginScreen.classList.add('hidden');
+      } else {
+        loginScreen.classList.remove('hidden');
+        updateLoginBrandUI();
+        document.getElementById('login-username').value = authConfig.username || 'admin';
+        document.getElementById('login-password').value = '';
+        const errAlert = document.getElementById('login-error-alert');
+        if (errAlert) errAlert.classList.add('hidden');
+        setTimeout(() => {
+          const pwdInput = document.getElementById('login-password');
+          if (pwdInput) pwdInput.focus();
+        }, 150);
+      }
+    };
+
+    window.handleLoginSubmit = function(e) {
+      if (e) e.preventDefault();
+      const uInput = (document.getElementById('login-username').value || '').trim();
+      const pInput = (document.getElementById('login-password').value || '').trim();
+      const remember = document.getElementById('login-remember').checked;
+      const errAlert = document.getElementById('login-error-alert');
+      const errText = document.getElementById('login-error-text');
+
+      if (uInput === authConfig.username && pInput === authConfig.password) {
+        // Berhasil Login
+        if (errAlert) errAlert.classList.add('hidden');
+        const sessionVal = 'active_' + Date.now();
+        sessionStorage.setItem('mou_auth_session', sessionVal);
+
+        if (remember) {
+          localStorage.setItem('mou_auth_remember', sessionVal);
+        } else {
+          localStorage.removeItem('mou_auth_remember');
+        }
+
+        const loginScreen = document.getElementById('login-screen');
+        loginScreen.classList.add('hidden');
+        showToast(`Selamat datang kembali, ${authConfig.nama_petugas || authConfig.username}!`);
+      } else {
+        if (errAlert && errText) {
+          errText.innerText = "Username atau Kata Sandi salah! Periksa kembali.";
+          errAlert.classList.remove('hidden');
+        }
+        showToast("Username atau Kata Sandi salah!", "error");
+        document.getElementById('login-password').value = '';
+        document.getElementById('login-password').focus();
+      }
+    };
+
+    window.lockApplication = function() {
+      if (confirm("Kunci atau keluar dari aplikasi sekarang?")) {
+        sessionStorage.removeItem('mou_auth_session');
+        localStorage.removeItem('mou_auth_remember');
+
+        const loginScreen = document.getElementById('login-screen');
+        if (loginScreen) {
+          loginScreen.classList.remove('hidden');
+          updateLoginBrandUI();
+          document.getElementById('login-password').value = '';
+          const errAlert = document.getElementById('login-error-alert');
+          if (errAlert) errAlert.classList.add('hidden');
+          document.getElementById('login-password').focus();
+        }
+        showToast("Aplikasi berhasil dikunci. Silakan login kembali.", "info");
+      }
+    };
+
+    window.togglePasswordVisibility = function(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) {
+          icon.classList.remove('fa-eye');
+          icon.classList.add('fa-eye-slash');
+        }
+      } else {
+        input.type = 'password';
+        if (icon) {
+          icon.classList.remove('fa-eye-slash');
+          icon.classList.add('fa-eye');
+        }
+      }
+    };
+
+    window.togglePasswordModal = function() {
+      const modal = document.getElementById('password-modal');
+      if (!modal) return;
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        document.getElementById('setting_username').value = authConfig.username || 'admin';
+        document.getElementById('setting_nama_petugas').value = authConfig.nama_petugas || (instituteProfile ? instituteProfile.nama_bendahara : '');
+        document.getElementById('setting_current_pwd').value = '';
+        document.getElementById('setting_new_pwd').value = '';
+        document.getElementById('setting_confirm_pwd').value = '';
+      }
+    };
+
+    window.savePasswordSettings = function(e) {
+      if (e) e.preventDefault();
+      const curPwd = (document.getElementById('setting_current_pwd').value || '').trim();
+      const newPwd = (document.getElementById('setting_new_pwd').value || '').trim();
+      const confPwd = (document.getElementById('setting_confirm_pwd').value || '').trim();
+      const newUsername = (document.getElementById('setting_username').value || '').trim();
+      const newPetugas = (document.getElementById('setting_nama_petugas').value || '').trim();
+
+      if (!newUsername) {
+        showToast("Username tidak boleh kosong!", "error");
+        document.getElementById('setting_username').focus();
+        return;
+      }
+
+      if (curPwd !== authConfig.password) {
+        showToast("Kata Sandi Saat Ini tidak cocok!", "error");
+        document.getElementById('setting_current_pwd').focus();
+        return;
+      }
+
+      if (newPwd.length < 4) {
+        showToast("Kata Sandi Baru minimal 4 karakter!", "error");
+        document.getElementById('setting_new_pwd').focus();
+        return;
+      }
+
+      if (newPwd !== confPwd) {
+        showToast("Konfirmasi Kata Sandi Baru tidak sama!", "error");
+        document.getElementById('setting_confirm_pwd').focus();
+        return;
+      }
+
+      authConfig.username = newUsername;
+      authConfig.password = newPwd;
+      authConfig.nama_petugas = newPetugas;
+
+      localStorage.setItem('mou_auth_config', JSON.stringify(authConfig));
+
+      if (isFirebaseActive && db) {
+        (async () => {
+          try {
+            await setDoc(doc(db, "mou_settings", "auth"), authConfig);
+          } catch (err) {
+            console.warn("Gagal simpan auth ke cloud:", err);
+          }
+        })();
+      }
+
+      togglePasswordModal();
+      showToast("Username dan Kata Sandi berhasil diperbarui!");
     };
 
     // --- 6. MODAL & KEAMANAN PIN ---
@@ -1569,6 +2153,8 @@
         bLogoImg.classList.add('hidden');
         bLogoIcon.classList.remove('hidden');
       }
+
+      updateLoginBrandUI();
     }
 
     // --- 7. FILTER & PAGINATION ---
@@ -1762,8 +2348,9 @@
           </td>
           <td class="p-3 text-center">
             <div class="flex items-center justify-center gap-1">
+              <button onclick="openDocActionModal(${actualIndex})" title="Cetak & Unduh Dokumen / Kwitansi (PDF & JPG)" class="p-1.5 text-emerald-700 hover:bg-emerald-100 rounded transition"><i class="fas fa-file-invoice"></i></button>
               <button onclick="openInstallmentModal(${actualIndex})" title="Kelola Cicilan / Pembayaran" class="p-1.5 text-amber-700 hover:bg-amber-50 rounded transition"><i class="fas fa-hand-holding-dollar"></i></button>
-              <button onclick="cetakSuratSatuan(${actualIndex})" title="Cetak Surat Perjanjian Satuan" class="p-1.5 text-emerald-700 hover:bg-emerald-50 rounded transition"><i class="fas fa-print"></i></button>
+              <button onclick="cetakSuratSatuan(${actualIndex})" title="Cetak Surat Perjanjian Langsung" class="p-1.5 text-teal-700 hover:bg-teal-50 rounded transition"><i class="fas fa-print"></i></button>
               <button onclick="openWaModal(${actualIndex})" title="${item.no_hp ? 'Kirim Pesan WhatsApp (' + item.no_hp + ')' : 'Kirim WhatsApp (Input No. HP)'}" class="p-1.5 ${item.no_hp ? 'text-green-600 hover:bg-green-100' : 'text-slate-400 hover:bg-slate-100'} rounded transition"><i class="fab fa-whatsapp"></i></button>
               <button onclick="editData(${actualIndex})" title="Edit Data" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition"><i class="fas fa-edit"></i></button>
               <button onclick="requestPinProtectedAction('delete', ${actualIndex})" title="Hapus Data" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded transition"><i class="fas fa-trash"></i></button>
@@ -2089,8 +2676,10 @@
           <td class="p-2.5 text-slate-500">${c.catatan || '-'}</td>
           <td class="p-2.5 text-center">
             <div class="flex items-center justify-center gap-1.5">
-              <button onclick="cetakKuitansiSatuan(${activeInstallmentIndex}, ${idx})" title="Cetak Kuitansi" class="p-1 text-emerald-700 hover:bg-emerald-50 rounded"><i class="fas fa-receipt"></i></button>
-              <button onclick="deleteInstallment(${idx})" title="Hapus Pembayaran" class="p-1 text-rose-600 hover:bg-rose-50 rounded"><i class="fas fa-trash"></i></button>
+              <button onclick="cetakKuitansiSatuan(${activeInstallmentIndex}, ${idx})" title="Cetak Kwitansi" class="p-1.5 text-emerald-700 hover:bg-emerald-100 rounded text-xs transition"><i class="fas fa-print"></i></button>
+              <button onclick="unduhKwitansiPdf(${activeInstallmentIndex}, ${idx})" title="Unduh Kwitansi PDF" class="p-1.5 text-rose-600 hover:bg-rose-100 rounded text-xs transition"><i class="fas fa-file-pdf"></i></button>
+              <button onclick="unduhKwitansiJpg(${activeInstallmentIndex}, ${idx})" title="Simpan Kwitansi JPG" class="p-1.5 text-blue-600 hover:bg-blue-100 rounded text-xs transition"><i class="fas fa-file-image"></i></button>
+              <button onclick="deleteInstallment(${idx})" title="Hapus Pembayaran" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded text-xs transition"><i class="fas fa-trash"></i></button>
             </div>
           </td>
         `;
@@ -2197,7 +2786,7 @@
       }
     };
 
-    // --- 12. CETAK CETAK: SURAT PERJANJIAN & KUITANSI (Robust Print Handler) ---
+    // --- 12. CETAK & SIMPAN BERKAS (SURAT MOU & KWITANSI: PRINT, PDF & JPG) ---
     function executeReliablePrint(elementId) {
       // 1. Bersihkan semua class print-active dari seluruh template cetak
       document.querySelectorAll('.print-active').forEach(el => {
@@ -2226,7 +2815,93 @@
       }, 200);
     }
 
-    window.cetakSuratSatuan = function(index) {
+    // Fungsi Pengunduhan PDF Standar Berkualitas Tinggi
+    window.downloadElementAsPdf = async function(elementId, filename, isLandscape = false) {
+      const template = document.getElementById(elementId);
+      if (!template) return;
+      showToast("Sedang menyiapkan file PDF berkualitas tinggi...", "info");
+
+      const origClasses = template.className;
+      const origStyle = template.getAttribute('style') || '';
+
+      template.classList.remove('hidden');
+      template.style.display = 'block';
+      template.style.background = '#ffffff';
+      template.style.color = '#000000';
+      template.style.width = isLandscape ? '1100px' : '820px';
+      template.style.margin = '0 auto';
+      template.style.padding = '24px';
+      template.style.position = 'relative';
+
+      const opt = {
+        margin: [6, 6, 6, 6],
+        filename: filename.endsWith('.pdf') ? filename : filename + '.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: isLandscape ? 'landscape' : 'portrait' }
+      };
+
+      try {
+        await html2pdf().set(opt).from(template).save();
+        showToast("File PDF berhasil diunduh!");
+      } catch (err) {
+        console.error("Gagal buat PDF:", err);
+        showToast("Gagal mengunduh PDF: " + err.message, "error");
+      } finally {
+        template.className = origClasses;
+        template.setAttribute('style', origStyle);
+        if (!template.classList.contains('print-active')) {
+          template.classList.add('hidden');
+        }
+      }
+    };
+
+    // Fungsi Pengunduhan Gambar JPG Resolusi Tinggi
+    window.downloadElementAsJpg = async function(elementId, filename) {
+      const template = document.getElementById(elementId);
+      if (!template) return;
+      showToast("Sedang memproses gambar JPG resolusi tinggi...", "info");
+
+      const origClasses = template.className;
+      const origStyle = template.getAttribute('style') || '';
+
+      template.classList.remove('hidden');
+      template.style.display = 'block';
+      template.style.background = '#ffffff';
+      template.style.color = '#000000';
+      template.style.width = '840px';
+      template.style.margin = '0 auto';
+      template.style.padding = '24px';
+
+      try {
+        const canvas = await html2canvas(template, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false
+        });
+        const link = document.createElement('a');
+        link.download = filename.endsWith('.jpg') ? filename : filename + '.jpg';
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        showToast("Gambar JPG berhasil disimpan!");
+      } catch (err) {
+        console.error("Gagal buat JPG:", err);
+        showToast("Gagal menyimpan gambar JPG: " + err.message, "error");
+      } finally {
+        template.className = origClasses;
+        template.setAttribute('style', origStyle);
+        if (!template.classList.contains('print-active')) {
+          template.classList.add('hidden');
+        }
+      }
+    };
+
+    // Helper Pengisian Data Template Surat Perjanjian Satuan
+    window.populateSuratTemplate = function(index) {
+      if (!database[index]) return;
       const item = database[index];
       const sum = getItemPaymentSummary(item);
 
@@ -2267,11 +2942,10 @@
       document.getElementById('sp-catatan').innerText = item.keterangan || '-';
       document.getElementById('sp-tgl-surat').innerText = item.tgl_surat;
       document.getElementById('sp-ttd-wali').innerText = item.nama_wali;
-
-      executeReliablePrint('surat-satuan-template');
     };
 
-    window.cetakKuitansiSatuan = function(itemIdx, cicilanIdx) {
+    // Helper Pengisian Data Template Kuitansi Pembayaran Satuan
+    window.populateKwitansiTemplate = function(itemIdx, cicilanIdx) {
       if (!database[itemIdx] || !database[itemIdx].riwayat_cicilan[cicilanIdx]) return;
       const item = database[itemIdx];
       const cicilan = item.riwayat_cicilan[cicilanIdx];
@@ -2309,8 +2983,121 @@
       document.getElementById('kwt-tanggal-cetak').innerText = cicilan.tanggal;
       document.getElementById('kwt-nama-bendahara').innerText = cicilan.penerima || instituteProfile.nama_bendahara;
       document.getElementById('kwt-niy-bendahara').innerText = instituteProfile.niy_bendahara || '-';
+    };
 
+    // Aksi Surat Perjanjian MOU: Cetak, Unduh PDF & Simpan JPG
+    window.cetakSuratSatuan = function(index) {
+      populateSuratTemplate(index);
+      executeReliablePrint('surat-satuan-template');
+    };
+
+    window.unduhSuratPdf = function(index) {
+      if (!database[index]) return;
+      populateSuratTemplate(index);
+      const item = database[index];
+      const cleanSurat = (item.no_surat || 'MOU').replace(/[^a-zA-Z0-9]/g, '_');
+      const cleanSantri = (item.nama_santri || 'Santri').replace(/[^a-zA-Z0-9]/g, '_');
+      downloadElementAsPdf('surat-satuan-template', `Surat_MOU_${cleanSurat}_${cleanSantri}`, false);
+    };
+
+    window.unduhSuratJpg = function(index) {
+      if (!database[index]) return;
+      populateSuratTemplate(index);
+      const item = database[index];
+      const cleanSurat = (item.no_surat || 'MOU').replace(/[^a-zA-Z0-9]/g, '_');
+      const cleanSantri = (item.nama_santri || 'Santri').replace(/[^a-zA-Z0-9]/g, '_');
+      downloadElementAsJpg('surat-satuan-template', `Surat_MOU_${cleanSurat}_${cleanSantri}`);
+    };
+
+    // Aksi Kuitansi Satuan: Cetak, Unduh PDF & Simpan JPG
+    window.cetakKuitansiSatuan = function(itemIdx, cicilanIdx) {
+      populateKwitansiTemplate(itemIdx, cicilanIdx);
       executeReliablePrint('kuitansi-template');
+    };
+
+    window.unduhKwitansiPdf = function(itemIdx, cicilanIdx) {
+      if (!database[itemIdx] || !database[itemIdx].riwayat_cicilan[cicilanIdx]) return;
+      populateKwitansiTemplate(itemIdx, cicilanIdx);
+      const item = database[itemIdx];
+      const cicilan = item.riwayat_cicilan[cicilanIdx];
+      const cleanKwt = (cicilan.no_kuitansi || 'KWT').replace(/[^a-zA-Z0-9]/g, '_');
+      const cleanSantri = (item.nama_santri || 'Santri').replace(/[^a-zA-Z0-9]/g, '_');
+      downloadElementAsPdf('kuitansi-template', `Kwitansi_${cleanKwt}_${cleanSantri}`, false);
+    };
+
+    window.unduhKwitansiJpg = function(itemIdx, cicilanIdx) {
+      if (!database[itemIdx] || !database[itemIdx].riwayat_cicilan[cicilanIdx]) return;
+      populateKwitansiTemplate(itemIdx, cicilanIdx);
+      const item = database[itemIdx];
+      const cicilan = item.riwayat_cicilan[cicilanIdx];
+      const cleanKwt = (cicilan.no_kuitansi || 'KWT').replace(/[^a-zA-Z0-9]/g, '_');
+      const cleanSantri = (item.nama_santri || 'Santri').replace(/[^a-zA-Z0-9]/g, '_');
+      downloadElementAsJpg('kuitansi-template', `Kwitansi_${cleanKwt}_${cleanSantri}`);
+    };
+
+    // --- MODAL AKSI CEPAT DOKUMEN & BERKAS (MOU & KWITANSI) ---
+    window.openDocActionModal = function(index) {
+      if (!database[index]) return;
+      activeDocIndex = index;
+      const item = database[index];
+      document.getElementById('doc-modal-subtitle').innerText = `Santri: ${item.nama_santri} (${item.jenjang}) - Wali: ${item.nama_wali}`;
+      document.getElementById('doc-modal-no-surat').innerText = item.no_surat;
+
+      const kwtContainer = document.getElementById('doc-modal-kwt-container');
+      kwtContainer.innerHTML = '';
+
+      if (!item.riwayat_cicilan || item.riwayat_cicilan.length === 0) {
+        kwtContainer.innerHTML = `
+          <div class="bg-white/80 p-3.5 rounded-xl border border-dashed border-amber-300 text-center text-slate-500">
+            <p class="font-semibold text-amber-800 flex items-center justify-center gap-1.5"><i class="fas fa-info-circle"></i> Belum Ada Pembayaran Dicatat</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Kwitansi akan otomatis tersedia setelah pembayaran cicilan atau DP diinput melalui tombol 'Kelola Cicilan'.</p>
+          </div>
+        `;
+      } else {
+        item.riwayat_cicilan.forEach((c, cIdx) => {
+          const kwtRow = document.createElement('div');
+          kwtRow.className = "bg-white p-3 rounded-xl border border-amber-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2";
+          kwtRow.innerHTML = `
+            <div>
+              <div class="font-bold text-slate-900">${c.no_kuitansi || ('Kwitansi #' + (cIdx+1))} <span class="text-emerald-700 font-extrabold ml-1.5">${formatRupiah(c.jumlah)}</span></div>
+              <div class="text-[10px] text-slate-500 mt-0.5">${c.tanggal} • Oleh: ${c.penerima || '-'} ${c.catatan ? '• Ket: ' + c.catatan : ''}</div>
+            </div>
+            <div class="flex items-center gap-1.5 self-end sm:self-auto">
+              <button onclick="cetakKuitansiSatuan(${activeDocIndex}, ${cIdx})" title="Cetak Kwitansi" class="px-2.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-sm transition">
+                <i class="fas fa-print"></i> Cetak
+              </button>
+              <button onclick="unduhKwitansiPdf(${activeDocIndex}, ${cIdx})" title="Unduh PDF" class="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-sm transition">
+                <i class="fas fa-file-pdf"></i> PDF
+              </button>
+              <button onclick="unduhKwitansiJpg(${activeDocIndex}, ${cIdx})" title="Simpan JPG" class="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1 shadow-sm transition">
+                <i class="fas fa-file-image"></i> JPG
+              </button>
+            </div>
+          `;
+          kwtContainer.appendChild(kwtRow);
+        });
+      }
+
+      document.getElementById('doc-action-modal').classList.remove('hidden');
+    };
+
+    window.toggleDocActionModal = function() {
+      document.getElementById('doc-action-modal').classList.toggle('hidden');
+    };
+
+    window.cetakSuratFromDocModal = function() {
+      if (activeDocIndex === null) return;
+      cetakSuratSatuan(activeDocIndex);
+    };
+
+    window.unduhSuratPdfFromDocModal = function() {
+      if (activeDocIndex === null) return;
+      unduhSuratPdf(activeDocIndex);
+    };
+
+    window.unduhSuratJpgFromDocModal = function() {
+      if (activeDocIndex === null) return;
+      unduhSuratJpg(activeDocIndex);
     };
 
     // --- 13. WHATSAPP NOTIFICATION MODAL (AKSI CEPAT) ---
@@ -2597,6 +3384,7 @@
 
     // Inisialisasi awal aplikasi
     applyProfileUI();
+    checkAuthSession();
     loadDataFromCloud();
     renderTable();
   </script>
