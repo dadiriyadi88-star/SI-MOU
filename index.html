@@ -186,6 +186,9 @@
       <a href="#dashboard-top" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white bg-emerald-800 hover:bg-emerald-700 font-semibold transition shadow-sm mb-2 border border-emerald-700/50">
         <i class="fas fa-gauge-high w-4 text-center text-emerald-300"></i> Dashboard Utama
       </a>
+      <button onclick="refreshData()" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition mb-1 text-xs font-semibold">
+        <i class="fas fa-rotate w-4 text-emerald-300 text-center" id="refresh-icon-sidebar"></i> Refresh Data
+      </button>
 
       <button onclick="toggleModal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white p-2.5 rounded-xl font-semibold flex items-center gap-2.5 transition shadow-sm mb-2">
         <i class="fas fa-plus-circle text-sm"></i> Tambah Surat / MOU
@@ -309,6 +312,9 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="refreshData()" title="Segarkan Data & Sinkronisasi" class="bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 text-white px-3 py-2.5 rounded-xl text-xs font-semibold transition shadow-sm flex items-center gap-1.5">
+              <i class="fas fa-rotate" id="refresh-icon-banner"></i> <span>Refresh</span>
+            </button>
             <button onclick="requestPinProtectedAction('profile')" class="bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 text-white px-3 py-2.5 rounded-xl text-xs font-semibold transition shadow-sm flex items-center gap-1.5">
               <i class="fas fa-school-flag text-amber-300"></i> Profil Instansi
             </button>
@@ -408,9 +414,14 @@
           <h3 class="font-bold text-xs md:text-sm text-slate-700 flex items-center gap-2">
             <i class="fas fa-filter text-emerald-600"></i> Filter & Parameter Laporan
           </h3>
-          <button onclick="resetFilter()" class="text-xs text-rose-600 font-semibold hover:underline flex items-center gap-1">
-            <i class="fas fa-undo text-[10px]"></i> Reset Filter
-          </button>
+          <div class="flex items-center gap-3">
+            <button onclick="refreshData()" class="text-xs text-emerald-700 font-bold hover:bg-emerald-100 flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 transition">
+              <i class="fas fa-rotate" id="refresh-icon-table"></i> Refresh Data
+            </button>
+            <button onclick="resetFilter()" class="text-xs text-rose-600 font-semibold hover:underline flex items-center gap-1">
+              <i class="fas fa-undo text-[10px]"></i> Reset Filter
+            </button>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -606,13 +617,49 @@
 
           <div>
             <label class="block font-semibold mb-1 text-slate-700">Jenis Tunggakan</label>
-            <select id="jenis_tunggakan" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
-              <option value="IAK">IAK</option>
+            <select id="jenis_tunggakan" required onchange="handleJenisTunggakanChange()" class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-slate-800">
+              <option value="IAK">IAK / SPP Bulanan</option>
               <option value="BIAYA PANGKAL">BIAYA PANGKAL</option>
               <option value="DAFTAR ULANG">DAFTAR ULANG</option>
               <option value="GABUNGAN">GABUNGAN</option>
               <option value="LAIN-LAIN">LAIN-LAIN</option>
             </select>
+          </div>
+
+          <!-- Pilihan Multi-Select Bulan Tunggakan (Juli s.d Juni / 12 Bulan Tahun Ajaran) -->
+          <div id="bulan-tunggakan-container" class="md:col-span-2 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300/80 p-4 rounded-2xl space-y-3 shadow-sm">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+              <div>
+                <label class="font-extrabold text-emerald-950 text-xs flex items-center gap-2">
+                  <i class="fas fa-calendar-check text-emerald-600 text-sm"></i> Pilih Bulan Tunggakan Yang Dibuat MOU (Tahun Ajaran Juli - Juni)
+                </label>
+                <p class="text-[11px] text-emerald-700 mt-0.5">Pilih satu atau beberapa bulan sekaligus yang menunggak (Contoh: 3 bulan, 6 bulan, dst.)</p>
+              </div>
+              <div class="flex items-center gap-1.5 text-[11px]">
+                <button type="button" onclick="quickSelectMonths('all')" class="px-2.5 py-1 bg-white hover:bg-emerald-100 text-emerald-800 font-bold rounded-lg border border-emerald-300 transition shadow-xs">12 Bln (Semua)</button>
+                <button type="button" onclick="quickSelectMonths('ganjil')" class="px-2.5 py-1 bg-white hover:bg-emerald-100 text-emerald-800 font-bold rounded-lg border border-emerald-300 transition shadow-xs">Jul-Des</button>
+                <button type="button" onclick="quickSelectMonths('genap')" class="px-2.5 py-1 bg-white hover:bg-emerald-100 text-emerald-800 font-bold rounded-lg border border-emerald-300 transition shadow-xs">Jan-Jun</button>
+                <button type="button" onclick="quickSelectMonths('none')" class="px-2.5 py-1 bg-white hover:bg-rose-50 text-rose-700 font-bold rounded-lg border border-rose-200 transition shadow-xs">Reset</button>
+              </div>
+            </div>
+
+            <!-- Grid 12 Bulan Interaktif -->
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 pt-1" id="month-chips-grid">
+              <!-- Render otomatis via JS: Juli s/d Juni -->
+            </div>
+
+            <!-- Ringkasan Terpilih & Kalkulator Otomatis Nominal -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 border-t border-emerald-200 pt-2.5 text-xs">
+              <div class="text-emerald-950">
+                <span class="font-bold text-slate-700">Rincian Bulan Terpilih:</span>
+                <span id="selected-months-summary" class="font-extrabold text-emerald-800 ml-1 bg-emerald-100/90 px-2.5 py-1 rounded-lg border border-emerald-300">Belum ada bulan dipilih</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs">
+                <span class="font-semibold text-slate-600">Nominal/Bulan:</span>
+                <input type="text" id="rate_per_month" placeholder="Contoh: 500.000" oninput="formatCurrencyInputCustom(this, 'rate_per_month_raw'); autoCalculateNominalFromMonths();" class="w-32 border rounded-lg px-2.5 py-1.5 bg-white text-xs font-bold outline-none focus:ring-2 focus:ring-emerald-500 shadow-xs">
+                <input type="hidden" id="rate_per_month_raw">
+              </div>
+            </div>
           </div>
 
           <div>
@@ -1778,6 +1825,141 @@ service cloud.firestore {
       }
     };
 
+
+    // --- 1C. LOGIKA MULTI-SELECT BULAN TUNGGAKAN (TAHUN AJARAN JULI - JUNI) ---
+    const TAHUN_AJARAN_BULAN = [
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+      "Januari", "Februari", "Maret", "April", "Mei", "Juni"
+    ];
+
+    let selectedMonthsState = [];
+
+    window.renderMonthChips = function() {
+      const container = document.getElementById('month-chips-grid');
+      if (!container) return;
+      container.innerHTML = '';
+
+      TAHUN_AJARAN_BULAN.forEach((bln, idx) => {
+        const isSelected = selectedMonthsState.includes(bln);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => toggleMonthSelection(bln);
+        btn.className = `py-1.5 px-2 rounded-xl text-xs font-bold transition flex items-center justify-between border shadow-xs ${
+          isSelected 
+            ? 'bg-emerald-600 text-white border-emerald-700 shadow-sm ring-2 ring-emerald-400' 
+            : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'
+        }`;
+        btn.innerHTML = `
+          <span>${idx + 1}. ${bln}</span>
+          <i class="fas ${isSelected ? 'fa-check-circle text-white' : 'fa-circle text-slate-200'} text-[11px]"></i>
+        `;
+        container.appendChild(btn);
+      });
+
+      updateSelectedMonthsSummary();
+    };
+
+    window.toggleMonthSelection = function(bln) {
+      if (selectedMonthsState.includes(bln)) {
+        selectedMonthsState = selectedMonthsState.filter(m => m !== bln);
+      } else {
+        selectedMonthsState.push(bln);
+        // Urutkan sesuai urutan tahun ajaran Juli - Juni
+        selectedMonthsState.sort((a, b) => TAHUN_AJARAN_BULAN.indexOf(a) - TAHUN_AJARAN_BULAN.indexOf(b));
+      }
+      renderMonthChips();
+      autoCalculateNominalFromMonths();
+    };
+
+    window.quickSelectMonths = function(mode) {
+      if (mode === 'all') {
+        selectedMonthsState = [...TAHUN_AJARAN_BULAN];
+      } else if (mode === 'ganjil') {
+        selectedMonthsState = ["Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+      } else if (mode === 'genap') {
+        selectedMonthsState = ["Januari", "Februari", "Maret", "April", "Mei", "Juni"];
+      } else {
+        selectedMonthsState = [];
+      }
+      renderMonthChips();
+      autoCalculateNominalFromMonths();
+    };
+
+    window.updateSelectedMonthsSummary = function() {
+      const el = document.getElementById('selected-months-summary');
+      if (!el) return;
+      if (selectedMonthsState.length === 0) {
+        el.innerText = "Belum ada bulan dipilih";
+        el.className = "font-bold text-slate-500 ml-1 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200";
+      } else {
+        el.innerText = `${selectedMonthsState.length} Bulan: ${selectedMonthsState.join(', ')}`;
+        el.className = "font-extrabold text-emerald-800 ml-1 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-300";
+      }
+    };
+
+    window.autoCalculateNominalFromMonths = function() {
+      const rateRaw = document.getElementById('rate_per_month_raw')?.value;
+      const rate = Number(rateRaw) || 0;
+      if (rate > 0 && selectedMonthsState.length > 0) {
+        const total = rate * selectedMonthsState.length;
+        document.getElementById('nominal').value = total;
+        document.getElementById('nominal_mask').value = new Intl.NumberFormat('id-ID').format(total);
+        document.getElementById('nominal_terbilang_preview').innerText = formatTerbilang(total);
+      }
+    };
+
+    window.handleJenisTunggakanChange = function() {
+      const val = document.getElementById('jenis_tunggakan').value;
+      const container = document.getElementById('bulan-tunggakan-container');
+      if (!container) return;
+      // Untuk IAK atau jenis apapun, form bulan tetap fleksibel & aktif
+      renderMonthChips();
+    };
+
+    // --- 1D. FUNGSI REFRESH DATA MENYELURUH ---
+    window.refreshData = async function() {
+      const icons = [
+        document.getElementById('refresh-icon-banner'),
+        document.getElementById('refresh-icon-table'),
+        document.getElementById('refresh-icon-sidebar')
+      ];
+      icons.forEach(ic => { if (ic) ic.classList.add('fa-spin'); });
+
+      showToast("Menyegarkan data dan sinkronisasi...", "info");
+
+      try {
+        // 1. Muat ulang dari LocalStorage
+        const saved = localStorage.getItem('mou_tunggakan_db');
+        if (saved) {
+          try {
+            database = JSON.parse(saved) || [];
+          } catch(e) {
+            database = [];
+          }
+        }
+
+        // 2. Jika Firebase aktif, sinkronkan dari Cloud
+        if (isFirebaseActive && db) {
+          await loadDataFromCloud();
+        }
+
+        // 3. Reset filter agar seluruh data tampil utuh
+        resetFilter();
+
+        // 4. Render tabel & grafik
+        renderTable();
+
+        showToast("Data dan seluruh dashboard berhasil disegarkan!");
+      } catch (err) {
+        console.error("Gagal refresh:", err);
+        showToast("Gagal menyegarkan data: " + err.message, "error");
+      } finally {
+        setTimeout(() => {
+          icons.forEach(ic => { if (ic) ic.classList.remove('fa-spin'); });
+        }, 500);
+      }
+    };
+
     // --- 2. SISTEM NOTIFIKASI TOAST ELEGAN ---
     window.showToast = function(message, type = 'success') {
       const container = document.getElementById('toast-container');
@@ -2404,6 +2586,12 @@ service cloud.firestore {
         document.getElementById('nominal').value = '';
         document.getElementById('nominal_mask').value = '';
         document.getElementById('nominal_terbilang_preview').innerText = '';
+        selectedMonthsState = [];
+        const rateInput = document.getElementById('rate_per_month');
+        if (rateInput) rateInput.value = '';
+        const rateRaw = document.getElementById('rate_per_month_raw');
+        if (rateRaw) rateRaw.value = '';
+        renderMonthChips();
         editIndex = null;
         document.getElementById('modal-title').innerText = "Tambah Data Surat/MOU";
       } else {
@@ -2412,6 +2600,13 @@ service cloud.firestore {
           document.getElementById('nominal').value = '';
           document.getElementById('nominal_mask').value = '';
           document.getElementById('nominal_terbilang_preview').innerText = '';
+          selectedMonthsState = [];
+          const rateInput = document.getElementById('rate_per_month');
+          if (rateInput) rateInput.value = '';
+          const rateRaw = document.getElementById('rate_per_month_raw');
+          if (rateRaw) rateRaw.value = '';
+          renderMonthChips();
+
           const now = new Date();
           const yyyy = now.getFullYear();
           const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -2723,8 +2918,12 @@ service cloud.firestore {
             ${item.no_hp ? `<span class="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5"><i class="fab fa-whatsapp"></i> ${item.no_hp}</span>` : '<span class="text-[10px] text-slate-400">-</span>'}
           </td>
           <td class="p-3">
-            <span class="text-[10px] bg-slate-200 px-2 py-0.5 rounded font-semibold text-slate-700">${item.jenis_tunggakan}</span>
-            <div class="text-[10px] text-slate-500 mt-1">${item.tahapan}</div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-[10px] bg-slate-200 px-2 py-0.5 rounded font-semibold text-slate-700">${item.jenis_tunggakan}</span>
+              ${item.jumlah_bulan > 0 ? `<span class="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.5 rounded-full border border-emerald-300"><i class="fas fa-calendar-check text-[8px] mr-1"></i>${item.jumlah_bulan} Bln</span>` : ''}
+            </div>
+            ${item.rincian_bulan ? `<div class="text-[10px] text-emerald-700 font-semibold mt-0.5">${item.rincian_bulan}</div>` : ''}
+            <div class="text-[10px] text-slate-500 mt-0.5">${item.tahapan}</div>
           </td>
           <td class="p-3">
             <div class="font-semibold text-slate-800">${formatRupiah(sum.totalKewajiban)}</div>
@@ -2837,7 +3036,15 @@ service cloud.firestore {
       // 1. Jenis Chart
       const jenisCategories = ['IAK', 'BIAYA PANGKAL', 'DAFTAR ULANG', 'GABUNGAN', 'LAIN-LAIN'];
       const jenisDataMap = { 'IAK': 0, 'BIAYA PANGKAL': 0, 'DAFTAR ULANG': 0, 'GABUNGAN': 0, 'LAIN-LAIN': 0 };
-      data.forEach(item => { if (jenisDataMap[item.jenis_tunggakan] !== undefined) jenisDataMap[item.jenis_tunggakan] += Number(item.nominal || 0); });
+      data.forEach(item => {
+        let cat = item.jenis_tunggakan || 'LAIN-LAIN';
+        if (cat.startsWith('IAK')) cat = 'IAK';
+        if (jenisDataMap[cat] !== undefined) {
+          jenisDataMap[cat] += Number(item.nominal || 0);
+        } else {
+          jenisDataMap['LAIN-LAIN'] += Number(item.nominal || 0);
+        }
+      });
       const jenisValues = jenisCategories.map(cat => jenisDataMap[cat]);
       
       const jenisListEl = document.getElementById('jenis-percentage-list');
@@ -2949,6 +3156,10 @@ service cloud.firestore {
         const existingId = isEdit ? database[editIndex].id : Date.now();
         const existingFirebaseId = isEdit ? database[editIndex].firebaseId : null;
 
+        const bulanMenunggak = [...selectedMonthsState];
+        const jumlahBulan = bulanMenunggak.length;
+        const rincianBulanStr = jumlahBulan > 0 ? `${jumlahBulan} Bulan: ${bulanMenunggak.join(', ')}` : '';
+
         const newItem = {
           id: existingId,
           periode: document.getElementById('periode').value || '',
@@ -2961,6 +3172,9 @@ service cloud.firestore {
           no_hp: document.getElementById('no_hp').value || '',
           nominal: nominalClean,
           jenis_tunggakan: document.getElementById('jenis_tunggakan').value || 'IAK',
+          bulan_tunggakan: bulanMenunggak,
+          jumlah_bulan: jumlahBulan,
+          rincian_bulan: rincianBulanStr,
           jatuh_tempo: document.getElementById('jatuh_tempo').value || '',
           status_info: document.getElementById('status_info').value || 'BELUM INFO',
           progres: document.getElementById('progres').value || 'menunggak',
@@ -2977,18 +3191,21 @@ service cloud.firestore {
         if (isEdit) {
           database[editIndex] = newItem;
         } else {
-          database.unshift(newItem); // Tambah di urutan teratas agar langsung tampil di halaman 1
+          database.unshift(newItem); // Tambah di urutan teratas agar selalu tampil pertama di halaman 1
         }
 
         // 2. Simpan ke LocalStorage segera
         saveToLocalStorage();
 
-        // 3. Render ulang tabel & seluruh perhitungan dashboard secara instan
+        // 3. Reset filter agar data baru ini 100% PASTI LANGSUNG TAMPIL di tabel dan grafik tanpa terhalang filter
+        resetFilter();
+
+        // 4. Render ulang seluruh tabel, grafik, dan perhitungan dashboard secara instan
         renderTable();
 
-        // 4. Tutup modal & tampilkan toast sukses
+        // 5. Tutup modal & bersihkan state
         toggleModal();
-        showToast(isEdit ? "Data MOU berhasil diperbarui!" : "Data MOU baru berhasil disimpan dan masuk ke perhitungan!");
+        showToast(isEdit ? "Data MOU berhasil diperbarui!" : "Data MOU baru berhasil disimpan dan langsung masuk ke tabel & grafik!");
 
         // 5. Sinkronisasi ke Cloud Firestore di latar belakang (tanpa memblokir antarmuka)
         if (isFirebaseActive && db) {
@@ -3030,6 +3247,11 @@ service cloud.firestore {
       document.getElementById('nominal_terbilang_preview').innerText = formatTerbilang(item.nominal);
 
       document.getElementById('jenis_tunggakan').value = item.jenis_tunggakan;
+
+      // Pulihkan pilihan bulan tunggakan
+      selectedMonthsState = Array.isArray(item.bulan_tunggakan) ? [...item.bulan_tunggakan] : [];
+      renderMonthChips();
+
       document.getElementById('jatuh_tempo').value = item.jatuh_tempo;
       document.getElementById('status_info').value = item.status_info;
       document.getElementById('progres').value = item.progres;
@@ -3401,7 +3623,8 @@ service cloud.firestore {
       document.getElementById('sp-nama-wali').innerText = item.nama_wali;
       document.getElementById('sp-nama-santri').innerText = item.nama_santri;
       document.getElementById('sp-jenjang-kelas').innerText = `${item.jenjang} / Kelas ${item.kelas}`;
-      document.getElementById('sp-jenis').innerText = item.jenis_tunggakan;
+      const rincianSp = item.rincian_bulan ? `${item.jenis_tunggakan} (${item.rincian_bulan})` : item.jenis_tunggakan;
+      document.getElementById('sp-jenis').innerText = rincianSp;
       document.getElementById('sp-nominal').innerText = formatRupiah(item.nominal);
       document.getElementById('sp-terbilang').innerText = formatTerbilang(item.nominal);
       document.getElementById('sp-terbayar').innerText = formatRupiah(sum.totalBayar);
@@ -3442,9 +3665,10 @@ service cloud.firestore {
       document.getElementById('kwt-nama-wali').innerText = item.nama_wali;
       document.getElementById('kwt-terbilang').innerText = formatTerbilang(cicilan.jumlah);
       
+      const rincianBulanKwt = item.rincian_bulan ? ` - ${item.rincian_bulan}` : '';
       const rincianPembayaran = cicilan.catatan 
-        ? `${item.jenis_tunggakan} (${cicilan.catatan})` 
-        : `Pembayaran ${item.jenis_tunggakan}`;
+        ? `${item.jenis_tunggakan}${rincianBulanKwt} (${cicilan.catatan})` 
+        : `Pembayaran ${item.jenis_tunggakan}${rincianBulanKwt}`;
       document.getElementById('kwt-keperluan').innerText = rincianPembayaran;
       
       document.getElementById('kwt-santri').innerText = `${item.nama_santri} (${item.jenjang} - Kelas ${item.kelas})`;
@@ -3624,7 +3848,7 @@ service cloud.firestore {
 
       let msg = "";
       if (templateType === 'reminder') {
-        msg = `Assalamu'alaikum Warahmatullahi Wabarakatuh.\n\nYth. Bapak/Ibu *${item.nama_wali}*,\nWali dari ananda *${item.nama_santri}* (${item.jenjang} - Kelas ${item.kelas}).\n\nKami dari Bagian Keuangan *${lembaga}* mengingatkan perihal surat kesepakatan kewajiban pendidikan ananda:\n• Jenis Kewajiban: *${item.jenis_tunggakan}*\n• Total Kewajiban: *${formatRupiah(item.nominal)}*\n• Sudah Terbayar: ${formatRupiah(sum.totalBayar)}\n• Sisa Kewajiban: *${formatRupiah(sum.sisa)}*\n• Batas Jatuh Tempo: *${item.jatuh_tempo}*\n\nMohon konfirmasinya apabila Bapak/Ibu berkenan melakukan pelunasan atau cicilan bertahap.\n\nJazakumullahu khairan katsiran.\n_${bendahara} - Keuangan ${lembaga}_`;
+        msg = `Assalamu'alaikum Warahmatullahi Wabarakatuh.\n\nYth. Bapak/Ibu *${item.nama_wali}*,\nWali dari ananda *${item.nama_santri}* (${item.jenjang} - Kelas ${item.kelas}).\n\nKami dari Bagian Keuangan *${lembaga}* mengingatkan perihal surat kesepakatan kewajiban pendidikan ananda:\n• Jenis Kewajiban: *${item.rincian_bulan ? item.jenis_tunggakan + ' (' + item.rincian_bulan + ')' : item.jenis_tunggakan}*\n• Total Kewajiban: *${formatRupiah(item.nominal)}*\n• Sudah Terbayar: ${formatRupiah(sum.totalBayar)}\n• Sisa Kewajiban: *${formatRupiah(sum.sisa)}*\n• Batas Jatuh Tempo: *${item.jatuh_tempo}*\n\nMohon konfirmasinya apabila Bapak/Ibu berkenan melakukan pelunasan atau cicilan bertahap.\n\nJazakumullahu khairan katsiran.\n_${bendahara} - Keuangan ${lembaga}_`;
       } else if (templateType === 'payment_received') {
         const lastCicilan = (item.riwayat_cicilan && item.riwayat_cicilan.length > 0) ? item.riwayat_cicilan[item.riwayat_cicilan.length - 1] : null;
         const jmlBayar = lastCicilan ? formatRupiah(lastCicilan.jumlah) : formatRupiah(0);
