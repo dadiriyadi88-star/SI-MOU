@@ -225,6 +225,9 @@
         <span>Restore Data (JSON)</span>
         <input type="file" id="import-json" accept=".json" onchange="restoreJSON(event)" class="hidden">
       </label>
+      <button onclick="resetDatabaseToZero()" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg text-rose-300 hover:bg-rose-950/70 hover:text-white transition text-xs font-semibold">
+        <i class="fas fa-trash-can w-4 text-rose-400 text-center"></i> Kosongkan / Mulai dari Nol
+      </button>
     </div>
 
     <!-- Tombol Keluar / Kunci Aplikasi -->
@@ -1916,7 +1919,7 @@ service cloud.firestore {
 
     let authConfig = JSON.parse(localStorage.getItem('mou_auth_config')) || defaultAuth;
 
-    // Inisialisasi Data: Local-First (Menjamin data tidak hilang/ter-reset saat keluar aplikasi)
+    // Inisialisasi Data: Mulai dari NOL (Tanpa Data Contoh/Dummy)
     const savedDbStr = localStorage.getItem('mou_tunggakan_db');
     let database = [];
 
@@ -1924,82 +1927,32 @@ service cloud.firestore {
       try {
         const parsed = JSON.parse(savedDbStr);
         if (Array.isArray(parsed)) {
-          database = parsed;
+          // Bersihkan data contoh bawaan jika ada (Ahmad Zaki, Aisyah Humaira, Faris Ali)
+          const isDummyData = parsed.some(item => 
+            item.nama_santri === "Ahmad Zaki" || 
+            item.nama_santri === "Aisyah Humaira" || 
+            item.nama_santri === "Faris Ali"
+          );
+          
+          if (isDummyData) {
+            database = parsed.filter(item => 
+              item.nama_santri !== "Ahmad Zaki" && 
+              item.nama_santri !== "Aisyah Humaira" && 
+              item.nama_santri !== "Faris Ali"
+            );
+            localStorage.setItem('mou_tunggakan_db', JSON.stringify(database));
+          } else {
+            database = parsed;
+          }
         }
       } catch (err) {
         console.error("Gagal membaca database lokal:", err);
+        database = [];
       }
     } else {
-      // Data bawaan awal HANYA dimuat saat aplikasi pertama kali dibuka di browser baru
-      database = [
-        {
-          id: 1,
-          periode: "2026-01",
-          no_surat: "001/MIAS/MA'HAD-IS/I/I/2026",
-          tgl_surat: "2026-01-10",
-          nama_santri: "Ahmad Zaki",
-          jenjang: "MMTQ PUTRA",
-          kelas: "1",
-          nama_wali: "H. Abdullah",
-          no_hp: "081234567890",
-          nominal: 2500000,
-          jenis_tunggakan: "BIAYA PANGKAL",
-          jatuh_tempo: "2026-02-10",
-          status_info: "SUDAH INFO",
-          progres: "cicilan berjalan",
-          tahapan: "tahap ke-1",
-          keterangan: "Telah dibayar DP Rp 500.000",
-          riwayat_cicilan: [
-            {
-              id: "c1",
-              no_kuitansi: "KWT/MIAS/2026/001",
-              tanggal: "2026-01-12",
-              jumlah: 500000,
-              penerima: "Dadi Slamet Riyadi",
-              catatan: "DP Pendaftaran Awal"
-            }
-          ]
-        },
-        {
-          id: 2,
-          periode: "2026-02",
-          no_surat: "002/MIAS/MA'HAD-IS/I/II/2026",
-          tgl_surat: "2026-02-01",
-          nama_santri: "Aisyah Humaira",
-          jenjang: "MMTQ PUTRI",
-          kelas: "3",
-          nama_wali: "Rahmat Hidayat",
-          no_hp: "089876543210",
-          nominal: 1200000,
-          jenis_tunggakan: "DAFTAR ULANG",
-          jatuh_tempo: "2026-02-28",
-          status_info: "BELUM INFO",
-          progres: "menunggak",
-          tahapan: "tahap ke-2",
-          keterangan: "Menunggu panen bulan depan",
-          riwayat_cicilan: []
-        },
-        {
-          id: 3,
-          periode: "2026-02",
-          no_surat: "003/MIAS/MA'HAD-IS/I/II/2026",
-          tgl_surat: "2026-02-15",
-          nama_santri: "Faris Ali",
-          jenjang: "MTTQ",
-          kelas: "2",
-          nama_wali: "Umar Khattab",
-          no_hp: "085211223344",
-          nominal: 1800000,
-          jenis_tunggakan: "IAK",
-          jatuh_tempo: "2026-03-01",
-          status_info: "SUDAH INFO",
-          progres: "proses",
-          tahapan: "tahap ke-1",
-          keterangan: "-",
-          riwayat_cicilan: []
-        }
-      ];
-      localStorage.setItem('mou_tunggakan_db', JSON.stringify(database));
+      // Database awal murni KOSONG (0 Data)
+      database = [];
+      localStorage.setItem('mou_tunggakan_db', JSON.stringify([]));
     }
 
     // Pastikan struktur riwayat_cicilan ada pada setiap item migrasi lama
@@ -2055,11 +2008,18 @@ service cloud.firestore {
           // 2. Sinkronisasi Data MOU (Smart Non-Destructive Merge)
           const snapshot = await getDocs(collection(db, "mou_tunggakan"));
           if (!snapshot.empty) {
-            const cloudDocs = snapshot.docs.map(d => {
+            // Saring dan bersihkan dokumen dummy contoh lama dari Firestore
+            const cloudDocs = [];
+            for (const d of snapshot.docs) {
               const data = d.data();
+              if (data.nama_santri === "Ahmad Zaki" || data.nama_santri === "Aisyah Humaira" || data.nama_santri === "Faris Ali") {
+                // Hapus data contoh dari Firestore di latar belakang agar cloud ikut bersih dari nol
+                deleteDoc(doc(db, "mou_tunggakan", d.id)).catch(() => {});
+                continue;
+              }
               if (!Array.isArray(data.riwayat_cicilan)) data.riwayat_cicilan = [];
-              return { firebaseId: d.id, ...data };
-            });
+              cloudDocs.push({ firebaseId: d.id, ...data });
+            }
 
             // Mulai dari database lokal saat ini
             let updated = false;
@@ -2431,6 +2391,8 @@ service cloud.firestore {
         toggleProfileModal();
       } else if (type === 'delete') {
         proceedDeleteData(data);
+      } else if (type === 'reset_zero') {
+        executeResetToZero();
       }
     }
 
@@ -2799,7 +2761,24 @@ service cloud.firestore {
       });
 
       if (totalItems === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="p-8 text-center text-slate-400">Tidak ada data surat/MOU yang sesuai dengan filter.</td></tr>`;
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="10" class="p-10 text-center">
+              <div class="max-w-md mx-auto space-y-3">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto text-2xl shadow-sm border border-emerald-100">
+                  <i class="fas fa-file-circle-plus"></i>
+                </div>
+                <div>
+                  <p class="font-bold text-slate-700 text-sm">Belum Ada Data Surat / MOU</p>
+                  <p class="text-xs text-slate-400 mt-1">Aplikasi siap digunakan dari NOL. Silakan klik tombol di bawah untuk mulai menginput data pertama.</p>
+                </div>
+                <button onclick="toggleModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow transition">
+                  <i class="fas fa-plus-circle"></i> Tambah Surat / MOU Baru
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
       }
 
       document.getElementById('filtered-counter').innerText = `Menampilkan ${totalItems} data`;
@@ -2853,52 +2832,66 @@ service cloud.firestore {
     // --- 9. CHARTS UPDATE ---
     function updateCharts(data) {
       const grandTotal = data.reduce((acc, curr) => acc + Number(curr.nominal || 0), 0);
+      const hasData = grandTotal > 0 && data.length > 0;
 
-      // Jenis Chart
+      // 1. Jenis Chart
       const jenisCategories = ['IAK', 'BIAYA PANGKAL', 'DAFTAR ULANG', 'GABUNGAN', 'LAIN-LAIN'];
       const jenisDataMap = { 'IAK': 0, 'BIAYA PANGKAL': 0, 'DAFTAR ULANG': 0, 'GABUNGAN': 0, 'LAIN-LAIN': 0 };
       data.forEach(item => { if (jenisDataMap[item.jenis_tunggakan] !== undefined) jenisDataMap[item.jenis_tunggakan] += Number(item.nominal || 0); });
       const jenisValues = jenisCategories.map(cat => jenisDataMap[cat]);
       
-      document.getElementById('jenis-percentage-list').innerHTML = jenisCategories.map(cat => {
-        const val = jenisDataMap[cat];
-        const pct = grandTotal > 0 ? ((val / grandTotal) * 100).toFixed(1) : 0;
-        return `<div><span class="font-semibold text-slate-700">${cat}:</span> ${pct}%</div>`;
-      }).join('');
+      const jenisListEl = document.getElementById('jenis-percentage-list');
+      if (hasData) {
+        jenisListEl.innerHTML = jenisCategories.map(cat => {
+          const val = jenisDataMap[cat];
+          const pct = ((val / grandTotal) * 100).toFixed(1);
+          return `<div><span class="font-semibold text-slate-700">${cat}:</span> ${pct}%</div>`;
+        }).join('');
+      } else {
+        jenisListEl.innerHTML = '<div class="col-span-2 text-center text-slate-400 py-3 italic text-[11px]">Belum ada data transaksi.</div>';
+      }
 
       if (jenisChartInstance) jenisChartInstance.destroy();
       jenisChartInstance = new Chart(document.getElementById('jenisChart'), {
         type: 'doughnut',
         data: {
-          labels: jenisCategories,
-          datasets: [{ data: jenisValues, backgroundColor: ['#059669', '#d97706', '#2563eb', '#9333ea', '#64748b'] }]
+          labels: hasData ? jenisCategories : ['Belum Ada Data'],
+          datasets: [{ 
+            data: hasData ? jenisValues : [1], 
+            backgroundColor: hasData ? ['#059669', '#d97706', '#2563eb', '#9333ea', '#64748b'] : ['#e2e8f0'] 
+          }]
         },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
       });
 
-      // Jenjang Chart
+      // 2. Jenjang Chart
       const jenjangCategories = ['MMTQ PUTRA', 'MMTQ PUTRI', 'MTTQ'];
       const jenjangDataMap = { 'MMTQ PUTRA': 0, 'MMTQ PUTRI': 0, 'MTTQ': 0 };
       data.forEach(item => { if (jenjangDataMap[item.jenjang] !== undefined) jenjangDataMap[item.jenjang] += Number(item.nominal || 0); });
       const jenjangValues = jenjangCategories.map(j => jenjangDataMap[j]);
 
-      document.getElementById('jenjang-percentage-list').innerHTML = jenjangCategories.map(j => {
-        const val = jenjangDataMap[j];
-        const pct = grandTotal > 0 ? ((val / grandTotal) * 100).toFixed(1) : 0;
-        return `<div><p class="font-semibold text-slate-700">${j}</p><p class="text-emerald-700 font-bold">${pct}%</p></div>`;
-      }).join('');
+      const jenjangListEl = document.getElementById('jenjang-percentage-list');
+      if (hasData) {
+        jenjangListEl.innerHTML = jenjangCategories.map(j => {
+          const val = jenjangDataMap[j];
+          const pct = ((val / grandTotal) * 100).toFixed(1);
+          return `<div><p class="font-semibold text-slate-700">${j}</p><p class="text-emerald-700 font-bold">${pct}%</p></div>`;
+        }).join('');
+      } else {
+        jenjangListEl.innerHTML = '<div class="col-span-3 text-center text-slate-400 py-3 italic text-[11px]">Belum ada data per jenjang.</div>';
+      }
 
       if (jenjangChartInstance) jenjangChartInstance.destroy();
       jenjangChartInstance = new Chart(document.getElementById('jenjangChart'), {
         type: 'bar',
         data: {
           labels: jenjangCategories,
-          datasets: [{ label: 'Total Nominal', data: jenjangValues, backgroundColor: ['#10b981', '#f59e0b', '#3b82f6'] }]
+          datasets: [{ label: 'Total Nominal', data: hasData ? jenjangValues : [0, 0, 0], backgroundColor: ['#10b981', '#f59e0b', '#3b82f6'] }]
         },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
       });
 
-      // Monthly Chart
+      // 3. Monthly Chart
       const monthlyDataMap = {};
       data.forEach(item => {
         const mKey = item.periode || 'Lainnya';
@@ -2907,20 +2900,25 @@ service cloud.firestore {
       const sortedMonths = Object.keys(monthlyDataMap).sort();
       const monthlyValues = sortedMonths.map(m => monthlyDataMap[m]);
 
-      document.getElementById('monthly-summary').innerHTML = sortedMonths.map(m => {
-        const val = monthlyDataMap[m];
-        const pct = grandTotal > 0 ? ((val / grandTotal) * 100).toFixed(1) : 0;
-        return `<div class="flex justify-between border-b py-0.5"><span>${m}: <strong>${formatRupiah(val)}</strong></span><span class="font-bold text-emerald-700">${pct}%</span></div>`;
-      }).join('') || 'Belum ada data.';
+      const monthlySummaryEl = document.getElementById('monthly-summary');
+      if (hasData && sortedMonths.length > 0) {
+        monthlySummaryEl.innerHTML = sortedMonths.map(m => {
+          const val = monthlyDataMap[m];
+          const pct = ((val / grandTotal) * 100).toFixed(1);
+          return `<div class="flex justify-between border-b py-0.5"><span>${m}: <strong>${formatRupiah(val)}</strong></span><span class="font-bold text-emerald-700">${pct}%</span></div>`;
+        }).join('');
+      } else {
+        monthlySummaryEl.innerHTML = '<div class="text-center text-slate-400 py-3 italic text-[11px]">Belum ada data tren bulanan.</div>';
+      }
 
       if (monthlyChartInstance) monthlyChartInstance.destroy();
       monthlyChartInstance = new Chart(document.getElementById('monthlyChart'), {
         type: 'line',
         data: {
-          labels: sortedMonths.length ? sortedMonths : ['-'],
+          labels: hasData && sortedMonths.length ? sortedMonths : ['Belum Ada Data'],
           datasets: [{
             label: 'Total (Rp)',
-            data: monthlyValues.length ? monthlyValues : [0],
+            data: hasData && monthlyValues.length ? monthlyValues : [0],
             borderColor: '#059669',
             backgroundColor: 'rgba(5, 150, 105, 0.1)',
             fill: true,
@@ -3061,6 +3059,39 @@ service cloud.firestore {
         }
       }
     }
+
+
+    // --- 10B. KOSONGKAN SELURUH DATA (MULAI DARI NOL) ---
+    window.resetDatabaseToZero = async function() {
+      if (confirm("Apakah Anda yakin ingin MENGOSONGKAN seluruh data MOU dan memulai dari NOL? Seluruh data surat dan kwitansi akan dihapus bersih.")) {
+        if (instituteProfile.pin_enabled) {
+          requestPinProtectedAction('reset_zero');
+          return;
+        }
+        await executeResetToZero();
+      }
+    };
+
+    window.executeResetToZero = async function() {
+      const totalHapus = database.length;
+      database = [];
+      saveToLocalStorage();
+      renderTable();
+
+      // Hapus data dari Cloud Firestore jika terhubung
+      if (isFirebaseActive && db) {
+        try {
+          const snap = await getDocs(collection(db, "mou_tunggakan"));
+          for (const d of snap.docs) {
+            await deleteDoc(doc(db, "mou_tunggakan", d.id));
+          }
+        } catch (e) {
+          console.warn("Gagal hapus cloud:", e);
+        }
+      }
+
+      showToast(`Database berhasil dikosongkan (${totalHapus} data dibersihkan). Anda siap menginput dari NOL!`);
+    };
 
     // --- 11. MANAJEMEN PEMBAYARAN CICILAN / ANGSURAN ---
     window.openInstallmentModal = function(index) {
