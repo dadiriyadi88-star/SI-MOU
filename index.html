@@ -557,7 +557,7 @@
         <button onclick="toggleModal()" class="text-slate-400 hover:text-slate-600 p-1"><i class="fas fa-times text-lg"></i></button>
       </div>
 
-      <form id="mou-form" onsubmit="saveData(event)" class="p-4 md:p-6 overflow-y-auto space-y-4 text-xs">
+      <form id="mou-form" onsubmit="event.preventDefault(); saveData(event); return false;" novalidate class="p-4 md:p-6 overflow-y-auto space-y-4 text-xs">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           <div>
             <label class="block font-semibold mb-1 text-slate-700">Periode (Bulan & Tahun)</label>
@@ -694,10 +694,12 @@
 
           <div>
             <label class="block font-semibold mb-1 text-slate-700">Progres Status</label>
-            <select id="progres" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
+            <select id="progres" class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-slate-800">
+              <option value="menunggak" selected>menunggak</option>
               <option value="proses">proses</option>
+              <option value="cicilan berjalan">cicilan berjalan</option>
+              <option value="menunggu pembayaran">menunggu pembayaran</option>
               <option value="lunas">lunas</option>
-              <option value="menunggak">menunggak</option>
               <option value="menunggu pembayaran">menunggu pembayaran</option>
               <option value="cicilan berjalan">cicilan berjalan</option>
               <option value="melewati jatuh tempo">melewati jatuh tempo</option>
@@ -712,7 +714,7 @@
 
         <div class="flex justify-end gap-2 border-t pt-4">
           <button type="button" onclick="toggleModal()" class="px-4 py-2 border rounded-xl hover:bg-slate-100 font-semibold text-slate-600 transition">Batal</button>
-          <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-semibold shadow transition">Simpan Data</button>
+          <button type="button" onclick="saveData(event)" id="btn-save-mou" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-semibold shadow transition flex items-center gap-1.5"><i class="fas fa-save"></i> Simpan Data</button>
         </div>
       </form>
     </div>
@@ -2611,8 +2613,12 @@ service cloud.firestore {
           const yyyy = now.getFullYear();
           const mm = String(now.getMonth() + 1).padStart(2, '0');
           const dd = String(now.getDate()).padStart(2, '0');
-          document.getElementById('periode').value = `${yyyy}-${mm}`;
-          document.getElementById('tgl_surat').value = `${yyyy}-${mm}-${dd}`;
+          
+          const periodeEl = document.getElementById('periode');
+          if (periodeEl) periodeEl.value = `${yyyy}-${mm}`;
+          
+          const tglSuratEl = document.getElementById('tgl_surat');
+          if (tglSuratEl) tglSuratEl.value = `${yyyy}-${mm}-${dd}`;
 
           // Default jatuh tempo 30 hari ke depan
           const due = new Date();
@@ -2620,7 +2626,17 @@ service cloud.firestore {
           const dueY = due.getFullYear();
           const dueM = String(due.getMonth() + 1).padStart(2, '0');
           const dueD = String(due.getDate()).padStart(2, '0');
-          document.getElementById('jatuh_tempo').value = `${dueY}-${dueM}-${dueD}`;
+          const jatuhTempoEl = document.getElementById('jatuh_tempo');
+          if (jatuhTempoEl) jatuhTempoEl.value = `${dueY}-${dueM}-${dueD}`;
+
+          const progresEl = document.getElementById('progres');
+          if (progresEl) progresEl.value = 'menunggak';
+
+          const statusInfoEl = document.getElementById('status_info');
+          if (statusInfoEl) statusInfoEl.value = 'BELUM INFO';
+
+          const tahapanEl = document.getElementById('tahapan');
+          if (tahapanEl) tahapanEl.value = 'tahap ke-1';
 
           autoGenerateNoSurat();
         }
@@ -2808,15 +2824,16 @@ service cloud.firestore {
     }
 
     window.getFilteredData = function() {
-      const search = (document.getElementById('search-input').value || '').toLowerCase();
-      const tglMulai = document.getElementById('filter-tgl-mulai').value;
-      const tglSelesai = document.getElementById('filter-tgl-selesai').value;
-      const bulanTahun = document.getElementById('filter-bulan-tahun').value;
-      const filterJenjang = document.getElementById('filter-jenjang').value;
-      const filterProgres = document.getElementById('filter-progres').value;
+      const search = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
+      const tglMulai = document.getElementById('filter-tgl-mulai')?.value;
+      const tglSelesai = document.getElementById('filter-tgl-selesai')?.value;
+      const bulanTahun = document.getElementById('filter-bulan-tahun')?.value;
+      const filterJenjang = document.getElementById('filter-jenjang')?.value;
+      const filterProgres = document.getElementById('filter-progres')?.value;
 
       return database.filter(item => {
-        const matchSearch = (item.nama_santri || '').toLowerCase().includes(search) || 
+        const matchSearch = !search || 
+                            (item.nama_santri || '').toLowerCase().includes(search) || 
                             (item.nama_wali || '').toLowerCase().includes(search) || 
                             (item.no_surat || '').toLowerCase().includes(search);
         
@@ -2834,6 +2851,8 @@ service cloud.firestore {
         if (quickFilterMode === 'due') {
           const alertStatus = getDueAlert(item.jatuh_tempo, item.progres);
           matchQuick = alertStatus.isDue && item.progres !== 'lunas';
+        } else if (quickFilterMode === 'menunggak') {
+          matchQuick = (item.progres === 'menunggak' || item.progres === 'proses' || item.progres === 'menunggu pembayaran');
         } else if (quickFilterMode) {
           matchQuick = item.progres === quickFilterMode;
         }
@@ -2874,7 +2893,7 @@ service cloud.firestore {
         totalSemuaSisa += sum.sisa;
 
         if (item.status_info === 'BELUM INFO') countBelumInfo++;
-        if (item.progres === 'menunggak') countMenunggak++;
+        if (item.progres === 'menunggak' || item.progres === 'proses' || item.progres === 'menunggu pembayaran') countMenunggak++;
         if (item.progres === 'cicilan berjalan') countCicilan++;
         if (item.progres === 'lunas') countLunas++;
 
@@ -3138,17 +3157,71 @@ service cloud.firestore {
 
     // --- 10. CRUD DATA MOU ---
     window.saveData = function(e) {
-      if (e) e.preventDefault();
+      if (e) {
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+      }
       
       try {
-        const rawNominal = (document.getElementById('nominal').value || '').trim() || 
-                           (document.getElementById('nominal_mask').value || '').replace(/[^0-9]/g, '');
+        // 1. Validasi Nama Santri
+        const namaSantriEl = document.getElementById('nama_santri');
+        const namaSantri = (namaSantriEl?.value || '').trim();
+        if (!namaSantri) {
+          showToast("Silakan masukkan Nama Lengkap Santri terlebih dahulu.", "error");
+          namaSantriEl?.focus();
+          return false;
+        }
+
+        // 2. Validasi Nama Wali
+        const namaWaliEl = document.getElementById('nama_wali');
+        const namaWali = (namaWaliEl?.value || '').trim();
+        if (!namaWali) {
+          showToast("Silakan masukkan Nama Lengkap Wali Santri terlebih dahulu.", "error");
+          namaWaliEl?.focus();
+          return false;
+        }
+
+        // 3. Validasi & Ambil Nominal
+        const rawNominal = (document.getElementById('nominal')?.value || '').trim() || 
+                           (document.getElementById('nominal_mask')?.value || '').replace(/[^0-9]/g, '');
         const nominalClean = Number(rawNominal) || 0;
 
         if (nominalClean <= 0) {
-          showToast("Silakan masukkan nominal kewajiban yang valid (lebih dari 0).", "error");
-          document.getElementById('nominal_mask').focus();
-          return;
+          showToast("Silakan tentukan bulan tunggakan atau masukkan nominal kewajiban yang valid (lebih dari Rp 0).", "error");
+          document.getElementById('nominal_mask')?.focus();
+          return false;
+        }
+
+        // 4. Smart Defaults untuk Tanggal & Administrasi (Anti-Gagal)
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+        const periodStr = `${yyyy}-${mm}`;
+
+        let tglSurat = document.getElementById('tgl_surat')?.value || todayStr;
+        let periodeVal = document.getElementById('periode')?.value || periodStr;
+
+        let jatuhTempo = document.getElementById('jatuh_tempo')?.value;
+        if (!jatuhTempo) {
+          const due = new Date();
+          due.setDate(due.getDate() + 30);
+          const dueY = due.getFullYear();
+          const dueM = String(due.getMonth() + 1).padStart(2, '0');
+          const dueD = String(due.getDate()).padStart(2, '0');
+          jatuhTempo = `${dueY}-${dueM}-${dueD}`;
+        }
+
+        let noSurat = (document.getElementById('no_surat')?.value || '').trim();
+        if (!noSurat) {
+          autoGenerateNoSurat();
+          noSurat = document.getElementById('no_surat')?.value;
+          if (!noSurat) {
+            const brand = instituteProfile.singkatan || 'MIAS';
+            const romanMonth = romanize(Number(mm));
+            noSurat = `001/${brand}/MA'HAD-IS/I/${romanMonth}/${yyyy}`;
+          }
         }
 
         const isEdit = editIndex !== null && editIndex >= 0 && editIndex < database.length;
@@ -3156,30 +3229,30 @@ service cloud.firestore {
         const existingId = isEdit ? database[editIndex].id : Date.now();
         const existingFirebaseId = isEdit ? database[editIndex].firebaseId : null;
 
-        const bulanMenunggak = [...selectedMonthsState];
+        const bulanMenunggak = Array.isArray(selectedMonthsState) ? [...selectedMonthsState] : [];
         const jumlahBulan = bulanMenunggak.length;
         const rincianBulanStr = jumlahBulan > 0 ? `${jumlahBulan} Bulan: ${bulanMenunggak.join(', ')}` : '';
 
         const newItem = {
           id: existingId,
-          periode: document.getElementById('periode').value || '',
-          no_surat: document.getElementById('no_surat').value || '',
-          tgl_surat: document.getElementById('tgl_surat').value || '',
-          nama_santri: document.getElementById('nama_santri').value || '',
-          jenjang: document.getElementById('jenjang').value || 'MMTQ PUTRA',
-          kelas: document.getElementById('kelas').value || '1',
-          nama_wali: document.getElementById('nama_wali').value || '',
-          no_hp: document.getElementById('no_hp').value || '',
+          periode: periodeVal,
+          no_surat: noSurat,
+          tgl_surat: tglSurat,
+          nama_santri: namaSantri,
+          jenjang: document.getElementById('jenjang')?.value || 'MMTQ PUTRA',
+          kelas: document.getElementById('kelas')?.value || '1',
+          nama_wali: namaWali,
+          no_hp: (document.getElementById('no_hp')?.value || '').trim(),
           nominal: nominalClean,
-          jenis_tunggakan: document.getElementById('jenis_tunggakan').value || 'IAK',
+          jenis_tunggakan: document.getElementById('jenis_tunggakan')?.value || 'IAK',
           bulan_tunggakan: bulanMenunggak,
           jumlah_bulan: jumlahBulan,
           rincian_bulan: rincianBulanStr,
-          jatuh_tempo: document.getElementById('jatuh_tempo').value || '',
-          status_info: document.getElementById('status_info').value || 'BELUM INFO',
-          progres: document.getElementById('progres').value || 'menunggak',
-          tahapan: document.getElementById('tahapan').value || 'tahap ke-1',
-          keterangan: document.getElementById('keterangan').value || '',
+          jatuh_tempo: jatuhTempo,
+          status_info: document.getElementById('status_info')?.value || 'BELUM INFO',
+          progres: document.getElementById('progres')?.value || 'menunggak',
+          tahapan: document.getElementById('tahapan')?.value || 'tahap ke-1',
+          keterangan: (document.getElementById('keterangan')?.value || '').trim(),
           riwayat_cicilan: existingCicilan
         };
 
@@ -3187,17 +3260,17 @@ service cloud.firestore {
           newItem.firebaseId = existingFirebaseId;
         }
 
-        // 1. Simpan ke database lokal segera (Local-First / Optimistic UI)
+        // 1. Simpan ke database lokal segera (Local-First)
         if (isEdit) {
           database[editIndex] = newItem;
         } else {
-          database.unshift(newItem); // Tambah di urutan teratas agar selalu tampil pertama di halaman 1
+          database.unshift(newItem); // Tambah di urutan teratas agar selalu tampil pertama di tabel
         }
 
         // 2. Simpan ke LocalStorage segera
         saveToLocalStorage();
 
-        // 3. Reset filter agar data baru ini 100% PASTI LANGSUNG TAMPIL di tabel dan grafik tanpa terhalang filter
+        // 3. Reset filter agar data baru ini 100% PASTI LANGSUNG TAMPIL di tabel dan grafik
         resetFilter();
 
         // 4. Render ulang seluruh tabel, grafik, dan perhitungan dashboard secara instan
@@ -3205,9 +3278,9 @@ service cloud.firestore {
 
         // 5. Tutup modal & bersihkan state
         toggleModal();
-        showToast(isEdit ? "Data MOU berhasil diperbarui!" : "Data MOU baru berhasil disimpan dan langsung masuk ke tabel & grafik!");
+        showToast(isEdit ? "Data MOU berhasil diperbarui!" : "Data MOU baru berhasil disimpan dan langsung masuk ke tabel & dashboard!");
 
-        // 5. Sinkronisasi ke Cloud Firestore di latar belakang (tanpa memblokir antarmuka)
+        // 6. Sinkronisasi ke Cloud Firestore di latar belakang (tanpa memblokir antarmuka)
         if (isFirebaseActive && db) {
           (async () => {
             try {
@@ -3223,9 +3296,11 @@ service cloud.firestore {
             }
           })();
         }
+        return false;
       } catch (err) {
         console.error("Terjadi kesalahan saat menyimpan data MOU:", err);
         showToast("Terjadi kesalahan saat memproses data: " + err.message, "error");
+        return false;
       }
     };
 
