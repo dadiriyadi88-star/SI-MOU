@@ -1374,26 +1374,78 @@ service cloud.firestore {
       </div>
     </div>
 
-    <p class="mb-3">Yang bertanda tangan di bawah ini:</p>
-    <div class="ml-6 space-y-1 text-xs mb-4">
-      <div class="grid grid-cols-3"><span class="w-36">Nama Orang Tua / Wali</span>: <strong id="sp-nama-wali"></strong></div>
-      <div class="grid grid-cols-3"><span class="w-36">Orang Tua dari Santri</span>: <strong id="sp-nama-santri"></strong></div>
-      <div class="grid grid-cols-3"><span class="w-36">Jenjang / Kelas</span>: <span id="sp-jenjang-kelas"></span></div>
+    <p class="mb-2 text-xs">Yang bertanda tangan di bawah ini:</p>
+    <div class="mb-3.5" style="padding-left: 14px;">
+      <table class="w-full text-xs border-collapse" style="table-layout: fixed;">
+        <tbody>
+          <tr>
+            <td style="width: 220px; vertical-align: top; padding: 2px 0;" class="text-slate-800">Nama Orang Tua / Wali</td>
+            <td style="width: 20px; text-align: center; font-weight: bold; vertical-align: top; padding: 2px 0;">:</td>
+            <td style="vertical-align: top; padding: 2px 0 2px 8px; text-align: left;"><strong id="sp-nama-wali" class="text-slate-900 font-bold"></strong></td>
+          </tr>
+          <tr>
+            <td style="width: 220px; vertical-align: top; padding: 2px 0;" class="text-slate-800">Orang Tua dari Santri</td>
+            <td style="width: 20px; text-align: center; font-weight: bold; vertical-align: top; padding: 2px 0;">:</td>
+            <td style="vertical-align: top; padding: 2px 0 2px 8px; text-align: left;"><strong id="sp-nama-santri" class="text-slate-900 font-bold"></strong></td>
+          </tr>
+          <tr>
+            <td style="width: 220px; vertical-align: top; padding: 2px 0;" class="text-slate-800">Jenjang / Kelas</td>
+            <td style="width: 20px; text-align: center; font-weight: bold; vertical-align: top; padding: 2px 0;">:</td>
+            <td style="vertical-align: top; padding: 2px 0 2px 8px; text-align: left;"><span id="sp-jenjang-kelas" class="text-slate-900 font-semibold"></span></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <p class="text-xs mb-3 text-justify">
       Menyatakan dengan sesungguhnya bahwa kami bersedia dan berkomitmen untuk menyelesaikan kewajiban administrasi pendidikan santri di lingkungan <span id="sp-teks-lembaga" class="font-semibold">Pondok Ma'had Imam Syafi'i</span> dengan rincian sebagai berikut:
     </p>
 
-    <div class="bg-gray-50 border p-3.5 rounded mb-4 text-xs space-y-1.5 font-sans">
-      <div class="flex justify-between"><span>Jenis Kewajiban / Tunggakan</span>: <strong id="sp-jenis"></strong></div>
-      <div class="flex justify-between"><span>Jumlah Total Kewajiban</span>: <strong id="sp-nominal" class="text-sm text-slate-900"></strong></div>
-      <div class="flex justify-between italic text-slate-600"><span>Terbilang</span>: <span id="sp-terbilang" class="font-medium"></span></div>
-      <div class="flex justify-between border-t pt-1"><span>Telah Dibayarkan (DP/Cicilan)</span>: <strong id="sp-terbayar" class="text-emerald-800"></strong></div>
-      <div class="flex justify-between"><span>Sisa Kewajiban</span>: <strong id="sp-sisa" class="text-amber-800"></strong></div>
-      <div class="flex justify-between border-t pt-1"><span>Batas Waktu Pelunasan (Jatuh Tempo)</span>: <strong id="sp-tempo"></strong></div>
-      <div class="flex justify-between"><span>Rencana Tahapan Pembayaran</span>: <span id="sp-tahapan"></span></div>
-      <div class="flex justify-between"><span>Catatan Kesepakatan</span>: <span id="sp-catatan"></span></div>
+    <div class="bg-gray-50 border border-slate-300 rounded mb-4 text-xs font-sans" style="padding: 12px 14px;">
+      <table class="w-full text-xs border-collapse" style="table-layout: fixed;">
+        <tbody>
+          <tr>
+            <td style="width: 220px; vertical-align: top; padding: 2px 0;" class="text-slate-700">Jenis Kewajiban / Tunggakan</td>
+            <td style="width: 20px; text-align: center; font-weight: bold; vertical-align: top; padding: 2px 0;">:</td>
+            <td style="vertical-align: top; padding: 2px 0 2px 8px; text-align: left;"><strong id="sp-jenis" class="text-slate-900 font-bold"></strong></td>
+          </tr>
+          <tr>
+            <td style="width: 220px; vertical-align: top; padding: 2px 0;" class="text-slate-700">Jumlah Total Kewajiban</td>
+            <td style="width: 20px; text-align: center; font-weight: bold; vertical-align: top; padding: 2px 0;">:</td>
+            <td style="vertical-align: top; padding: 2px 0 2px 8px; text-align: left;"><strong id="sp-nominal" class="text-sm text-slate-900 font-extrabold"></strong></td>
+          </tr>
+          <tr class="italic text-slate-600">
+            <td style="width: 220px; vertical-align: top; padding: 2px 0;">Terbilang</td>
+            <td style="width: 20px; text-align: center; font-weight: bold; vertical-align: top; padding: 2px 0;">:</td>
+            <td style="vertical-align: top; padding: 2px 0 2px 8px; text-align: left;"><span id="sp-terbilang" class="font-medium"></span></td>
+          </tr>
+          <tr class="border-t border-slate-200">
+            <td style="width: 220px; vertical-align: top; padding: 3px 0 2px 0;" class="text-slate-700">Telah Dibayarkan (DP/Cicilan)</td>
+            <td style="width: 20px; text-align: center; font-weight: bold; vertical-align: top; padding: 3px 0 2px 0;">:</td>
+            <td style="vertical-align: top; padding: 3px 0 2px 8px; text-align: left;"><strong id="sp-terbayar" class="text-emerald-800 font-bold"></strong></td>
+          </tr>
+          <tr>
+            <td style="width: 220px; vertical-align: top; padding: 2px 0;" class="text-slate-700">Sisa Kewajiban</td>
+            <td style="width: 20px; text-align: center; font-weight: bold; vertical-align: top; padding: 2px 0;">:</td>
+            <td style="vertical-align: top; padding: 2px 0 2px 8px; text-align: left;"><strong id="sp-sisa" class="text-amber-800 font-bold"></strong></td>
+          </tr>
+          <tr class="border-t border-slate-200">
+            <td style="width: 220px; vertical-align: top; padding: 3px 0 2px 0;" class="text-slate-700">Batas Waktu Pelunasan (Jatuh Tempo)</td>
+            <td style="width: 20px; text-align: center; font-weight: bold; vertical-align: top; padding: 3px 0 2px 0;">:</td>
+            <td style="vertical-align: top; padding: 3px 0 2px 8px; text-align: left;"><strong id="sp-tempo" class="text-slate-900 font-bold"></strong></td>
+          </tr>
+          <tr>
+            <td style="width: 220px; vertical-align: top; padding: 2px 0;" class="text-slate-700">Rencana Tahapan Pembayaran</td>
+            <td style="width: 20px; text-align: center; font-weight: bold; vertical-align: top; padding: 2px 0;">:</td>
+            <td style="vertical-align: top; padding: 2px 0 2px 8px; text-align: left;"><span id="sp-tahapan" class="text-slate-800 font-semibold"></span></td>
+          </tr>
+          <tr>
+            <td style="width: 220px; vertical-align: top; padding: 2px 0;" class="text-slate-700">Catatan Kesepakatan</td>
+            <td style="width: 20px; text-align: center; font-weight: bold; vertical-align: top; padding: 2px 0;">:</td>
+            <td style="vertical-align: top; padding: 2px 0 2px 8px; text-align: left;"><span id="sp-catatan" class="text-slate-700"></span></td>
+          </tr>
+        </tbody>
+      </table>
       <div id="sp-jadwal-table-container"></div>
     </div>
 
@@ -3529,19 +3581,36 @@ service cloud.firestore {
         // 2. Simpan ke LocalStorage segera
         saveToLocalStorage();
 
-        // 3. Reset filter agar data baru ini 100% PASTI LANGSUNG TAMPIL di tabel dan grafik
+        // 3. Bersihkan seluruh filter & kata kunci agar data baru 100% PASTI LANGSUNG TAMPIL di tabel
         resetFilter();
 
-        // 4. Render ulang seluruh tabel, grafik, dan perhitungan dashboard secara instan
-        renderTable();
-        
-        // 4B. Pastikan tampilan rekapitulasi aktif agar baris baru langsung terlihat
+        // 4. Pastikan tampilan rekapitulasi tabel aktif agar baris baru langsung terlihat di layar
         const currentActiveView = localStorage.getItem('mou_active_view') || 'all';
-        switchMainView(currentActiveView);
+        if (currentActiveView === 'grafik') {
+          // Jika pengguna sedang di mode grafik saja, beralih ke rekapitulasi agar tabel langsung terlihat
+          switchMainView('rekapitulasi');
+        } else {
+          switchMainView(currentActiveView);
+        }
 
-        // 5. Tutup modal & bersihkan state
+        // 5. Render ulang seluruh tabel, grafik, dan perhitungan dashboard secara instan
+        renderTable();
+
+        // 6. Tutup modal & bersihkan formulir
         toggleModal();
-        showToast(isEdit ? "Data MOU berhasil diperbarui!" : "Data MOU baru berhasil disimpan dan langsung masuk ke tabel & dashboard!");
+        showToast(isEdit ? "Data MOU berhasil diperbarui!" : "Data MOU baru berhasil disimpan dan langsung tampil di tabel!");
+
+        // 7. Sorot (highlight) baris teratas dan scroll halus ke tabel secara otomatis
+        setTimeout(() => {
+          const firstRow = document.querySelector('#table-body tr:first-child');
+          if (firstRow) {
+            firstRow.classList.add('bg-emerald-100', 'transition-colors', 'duration-700');
+            firstRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            setTimeout(() => {
+              firstRow.classList.remove('bg-emerald-100');
+            }, 2500);
+          }
+        }, 150);
 
         // 6. Sinkronisasi ke Cloud Firestore di latar belakang (tanpa memblokir antarmuka)
         if (isFirebaseActive && db) {
@@ -4466,8 +4535,12 @@ service cloud.firestore {
     loadDataFromCloud();
     renderTable();
     
-    // Terapkan mode tampilan mandiri terakhir yang dipilih (Semua / Grafik / Rekapitulasi)
-    const savedActiveView = localStorage.getItem('mou_active_view') || 'all';
+    // Terapkan mode tampilan mandiri (Default: 'all' agar seluruh data tabel langsung terlihat)
+    let savedActiveView = localStorage.getItem('mou_active_view');
+    if (!savedActiveView || savedActiveView === 'grafik') {
+      savedActiveView = 'all';
+      localStorage.setItem('mou_active_view', 'all');
+    }
     switchMainView(savedActiveView);
   </script>
 </body>
