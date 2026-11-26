@@ -183,23 +183,21 @@
     <div class="flex-1 overflow-y-auto px-4 py-5 space-y-1.5 text-xs">
       <p class="text-[10px] uppercase font-bold tracking-wider text-emerald-400 px-3 mb-2">Navigasi Utama</p>
       
-      <a href="#dashboard-top" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white bg-emerald-800 hover:bg-emerald-700 font-semibold transition shadow-sm mb-2 border border-emerald-700/50">
-        <i class="fas fa-gauge-high w-4 text-center text-emerald-300"></i> Dashboard Utama
-      </a>
-      <button onclick="refreshData()" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition mb-1 text-xs font-semibold">
-        <i class="fas fa-rotate w-4 text-emerald-300 text-center" id="refresh-icon-sidebar"></i> Refresh Data
+      <button onclick="switchMainView('all')" id="nav-btn-all" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl text-white bg-emerald-800 hover:bg-emerald-700 font-bold transition shadow-sm mb-1.5 border border-emerald-600">
+        <i class="fas fa-gauge-high w-4 text-center text-emerald-300"></i> Dashboard Utama (Semua)
       </button>
+      
 
       <button onclick="toggleModal()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white p-2.5 rounded-xl font-semibold flex items-center gap-2.5 transition shadow-sm mb-2">
         <i class="fas fa-plus-circle text-sm"></i> Tambah Surat / MOU
       </button>
 
-      <a href="#statistik-area" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition">
-        <i class="fas fa-chart-pie w-4 text-center"></i> Ringkasan & Grafik
-      </a>
-      <a href="#tabel-area" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition">
-        <i class="fas fa-table-list w-4 text-center"></i> Rekapitulasi Data
-      </a>
+      <button onclick="switchMainView('grafik')" id="nav-btn-grafik" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition mb-1 text-xs font-medium">
+        <i class="fas fa-chart-pie w-4 text-center text-emerald-300"></i> Ringkasan & Grafik
+      </button>
+      <button onclick="switchMainView('rekapitulasi')" id="nav-btn-rekapitulasi" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition mb-2 text-xs font-medium">
+        <i class="fas fa-table-list w-4 text-center text-emerald-300"></i> Rekapitulasi Data
+      </button>
 
       <p class="text-[10px] uppercase font-bold tracking-wider text-emerald-400 px-3 pt-3 mb-2">Pengaturan Instansi</p>
       <button onclick="requestPinProtectedAction('profile')" class="w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 transition">
@@ -331,7 +329,57 @@
         </div>
       </div>
 
-      <!-- Stat Cards (Vibrant, Colorful & Modern) -->
+      <!-- Navigasi Tampilan Mandiri (Independent View Tabs) -->
+      <div class="flex items-center justify-between flex-wrap gap-2 bg-white p-2.5 rounded-2xl border border-slate-200 shadow-xs">
+        <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+          <button type="button" onclick="switchMainView('all')" id="tab-btn-all" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-white text-emerald-800 shadow-xs border border-slate-200">
+            <i class="fas fa-layer-group"></i> Semua Tampilan
+          </button>
+          <button type="button" onclick="switchMainView('grafik')" id="tab-btn-grafik" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-emerald-700 transition flex items-center gap-2">
+            <i class="fas fa-chart-pie text-emerald-600"></i> Ringkasan & Grafik
+          </button>
+          <button type="button" onclick="switchMainView('rekapitulasi')" id="tab-btn-rekapitulasi" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-emerald-700 transition flex items-center gap-2">
+            <i class="fas fa-table-list text-emerald-600"></i> Rekapitulasi Data
+          </button>
+        </div>
+        <div class="text-[11px] text-slate-500 font-medium px-2 flex items-center gap-2">
+          <span id="active-view-indicator" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
+            <i class="fas fa-layer-group text-emerald-600 text-[10px]"></i> Mode: Semua Tampilan
+          </span>
+        </div>
+      </div>
+
+      <!-- VIEW WRAPPER 1: RINGKASAN & GRAFIK (MANDIRI) -->
+      <div id="section-ringkasan-grafik" class="space-y-4 md:space-y-6">
+      <!-- Navigasi Tampilan Mandiri (Independent View Tabs) -->
+      <div class="flex items-center justify-between flex-wrap gap-2 bg-white p-2.5 rounded-2xl border border-slate-200 shadow-xs mb-2">
+        <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+          <button type="button" onclick="switchMainView('all')" id="tab-btn-all" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-white text-emerald-800 shadow-xs border border-slate-200">
+            <i class="fas fa-layer-group"></i> Semua Tampilan
+          </button>
+          <button type="button" onclick="switchMainView('grafik')" id="tab-btn-grafik" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-emerald-700 transition flex items-center gap-2">
+            <i class="fas fa-chart-pie text-emerald-600"></i> Ringkasan & Grafik
+          </button>
+          <button type="button" onclick="switchMainView('rekapitulasi')" id="tab-btn-rekapitulasi" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-emerald-700 transition flex items-center gap-2">
+            <i class="fas fa-table-list text-emerald-600"></i> Rekapitulasi Data
+          </button>
+        </div>
+        <div class="text-[11px] text-slate-500 font-medium px-2 flex items-center gap-2">
+          <span id="active-view-indicator" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
+            <i class="fas fa-layer-group text-emerald-600 text-[10px]"></i> Mode: Semua Tampilan
+          </span>
+        </div>
+      </div>
+
+      <!-- VIEW WRAPPER 1: RINGKASAN & GRAFIK (MANDIRI) -->
+      <div id="section-ringkasan-grafik" class="space-y-4 md:space-y-6">
+        <div class="flex items-center justify-between border-b border-emerald-200/60 pb-2">
+          <h3 class="font-extrabold text-sm md:text-base text-emerald-950 flex items-center gap-2">
+            <i class="fas fa-chart-pie text-emerald-600"></i> Ringkasan Statistik & Grafik Analisis
+          </h3>
+          <span class="text-[11px] text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200 font-medium">Data Terkini</span>
+        </div>
+        <!-- Stat Cards (Vibrant, Colorful & Modern) -->
       <div id="statistik-area" class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <!-- Card 1: Total Sisa Tunggakan (Vibrant Amber / Orange) -->
         <div class="relative overflow-hidden bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 md:p-5 text-white shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all">
@@ -397,75 +445,7 @@
           </div>
         </div>
       </div>
-
-      <!-- Quick Status Filter Badges -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold">
-        <span class="text-slate-500 text-[11px] uppercase mr-1">Filter Cepat:</span>
-        <button onclick="setQuickFilter('')" id="qf-all" class="px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-sm transition">Semua (<span id="qf-count-all">0</span>)</button>
-        <button onclick="setQuickFilter('menunggak')" id="qf-menunggak" class="px-3 py-1.5 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 transition">Menunggak (<span id="qf-count-menunggak">0</span>)</button>
-        <button onclick="setQuickFilter('cicilan berjalan')" id="qf-cicilan" class="px-3 py-1.5 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 transition">Cicilan (<span id="qf-count-cicilan">0</span>)</button>
-        <button onclick="setQuickFilter('lunas')" id="qf-lunas" class="px-3 py-1.5 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 transition">Lunas (<span id="qf-count-lunas">0</span>)</button>
-        <button onclick="setQuickFilter('due')" id="qf-due" class="px-3 py-1.5 rounded-full bg-slate-200 hover:bg-slate-300 text-rose-700 transition">Lewat Tempo (<span id="qf-count-due">0</span>)</button>
-      </div>
-
-      <!-- Filter Pencarian Parameter Lengkap -->
-      <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-        <div class="flex items-center justify-between border-b pb-3">
-          <h3 class="font-bold text-xs md:text-sm text-slate-700 flex items-center gap-2">
-            <i class="fas fa-filter text-emerald-600"></i> Filter & Parameter Laporan
-          </h3>
-          <div class="flex items-center gap-3">
-            <button onclick="refreshData()" class="text-xs text-emerald-700 font-bold hover:bg-emerald-100 flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 transition">
-              <i class="fas fa-rotate" id="refresh-icon-table"></i> Refresh Data
-            </button>
-            <button onclick="resetFilter()" class="text-xs text-rose-600 font-semibold hover:underline flex items-center gap-1">
-              <i class="fas fa-undo text-[10px]"></i> Reset Filter
-            </button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Keywords</label>
-            <input type="text" id="search-input" onkeyup="handleFilterChange()" placeholder="Santri / Wali / No. Surat" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tanggal Mulai</label>
-            <input type="date" id="filter-tgl-mulai" onchange="handleFilterChange()" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tanggal Selesai</label>
-            <input type="date" id="filter-tgl-selesai" onchange="handleFilterChange()" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Bulan/Tahun Periode</label>
-            <input type="month" id="filter-bulan-tahun" onchange="handleFilterChange()" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jenjang</label>
-            <select id="filter-jenjang" onchange="handleFilterChange()" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
-              <option value="">Semua Jenjang</option>
-              <option value="MMTQ PUTRA">MMTQ PUTRA</option>
-              <option value="MMTQ PUTRI">MMTQ PUTRI</option>
-              <option value="MTTQ">MTTQ</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Progres Status</label>
-            <select id="filter-progres" onchange="handleFilterChange()" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
-              <option value="">Semua Progres</option>
-              <option value="proses">proses</option>
-              <option value="lunas">lunas</option>
-              <option value="menunggak">menunggak</option>
-              <option value="menunggu pembayaran">menunggu pembayaran</option>
-              <option value="cicilan berjalan">cicilan berjalan</option>
-              <option value="melewati jatuh tempo">melewati jatuh tempo</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- Charts Section -->
+        <!-- Charts Section -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
           <h4 class="font-bold text-xs text-slate-700 mb-2 flex items-center gap-1.5">
@@ -497,8 +477,83 @@
           <div id="monthly-summary" class="mt-3 text-[11px] border-t pt-2 text-slate-600 max-h-16 overflow-y-auto"></div>
         </div>
       </div>
+      </div>
+      <!-- END VIEW WRAPPER 1 -->
 
-      <!-- Table Section -->
+      <!-- VIEW WRAPPER 2: REKAPITULASI DATA (MANDIRI) -->
+      <div id="section-rekapitulasi" class="space-y-4 md:space-y-6 pt-2">
+        <div class="flex items-center justify-between border-b border-emerald-200/60 pb-2">
+          <h3 class="font-extrabold text-sm md:text-base text-emerald-950 flex items-center gap-2">
+            <i class="fas fa-table-list text-emerald-600"></i> Rekapitulasi Data Surat Perjanjian & MOU
+          </h3>
+          <span class="text-[11px] text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200 font-medium">Tabel Administrasi Lengkap</span>
+        </div>
+        <!-- Quick Status Filter Badges -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-semibold">
+        <span class="text-slate-500 text-[11px] uppercase mr-1">Filter Cepat:</span>
+        <button onclick="setQuickFilter('')" id="qf-all" class="px-3 py-1.5 rounded-full bg-emerald-700 text-white shadow-sm transition">Semua (<span id="qf-count-all">0</span>)</button>
+        <button onclick="setQuickFilter('menunggak')" id="qf-menunggak" class="px-3 py-1.5 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 transition">Menunggak (<span id="qf-count-menunggak">0</span>)</button>
+        <button onclick="setQuickFilter('cicilan berjalan')" id="qf-cicilan" class="px-3 py-1.5 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 transition">Cicilan (<span id="qf-count-cicilan">0</span>)</button>
+        <button onclick="setQuickFilter('lunas')" id="qf-lunas" class="px-3 py-1.5 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 transition">Lunas (<span id="qf-count-lunas">0</span>)</button>
+        <button onclick="setQuickFilter('due')" id="qf-due" class="px-3 py-1.5 rounded-full bg-slate-200 hover:bg-slate-300 text-rose-700 transition">Lewat Tempo (<span id="qf-count-due">0</span>)</button>
+      </div>
+        <!-- Filter Pencarian Parameter Lengkap -->
+      <div class="bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between border-b pb-3">
+          <h3 class="font-bold text-xs md:text-sm text-slate-700 flex items-center gap-2">
+            <i class="fas fa-filter text-emerald-600"></i> Filter & Parameter Laporan
+          </h3>
+          <div class="flex items-center gap-3">
+            <button onclick="refreshData()" class="text-xs text-emerald-700 font-bold hover:bg-emerald-100 flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 transition">
+              <i class="fas fa-rotate" id="refresh-icon-table"></i> Refresh Data
+            </button>
+            <button onclick="resetFilter()" class="text-xs text-rose-600 font-semibold hover:underline flex items-center gap-1">
+              <i class="fas fa-undo text-[10px]"></i> Reset Filter
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Keywords</label>
+            <input type="text" id="search-input" autocomplete="off" onkeyup="handleFilterChange()" placeholder="Santri / Wali / No. Surat" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tanggal Mulai</label>
+            <input type="date" id="filter-tgl-mulai" autocomplete="off" onchange="handleFilterChange()" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tanggal Selesai</label>
+            <input type="date" id="filter-tgl-selesai" autocomplete="off" onchange="handleFilterChange()" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Bulan/Tahun Periode</label>
+            <input type="month" id="filter-bulan-tahun" autocomplete="off" onchange="handleFilterChange()" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jenjang</label>
+            <select id="filter-jenjang" onchange="handleFilterChange()" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
+              <option value="">Semua Jenjang</option>
+              <option value="MMTQ PUTRA">MMTQ PUTRA</option>
+              <option value="MMTQ PUTRI">MMTQ PUTRI</option>
+              <option value="MTTQ">MTTQ</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Progres Status</label>
+            <select id="filter-progres" onchange="handleFilterChange()" class="border rounded-lg p-2 text-xs w-full focus:ring-2 focus:ring-emerald-500 outline-none">
+              <option value="">Semua Progres</option>
+              <option value="proses">proses</option>
+              <option value="lunas">lunas</option>
+              <option value="menunggak">menunggak</option>
+              <option value="menunggu pembayaran">menunggu pembayaran</option>
+              <option value="cicilan berjalan">cicilan berjalan</option>
+              <option value="melewati jatuh tempo">melewati jatuh tempo</option>
+            </select>
+          </div>
+        </div>
+      </div>
+        <!-- Table Section -->
       <div id="tabel-area" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-slate-50/60">
           <h3 class="font-bold text-xs md:text-sm text-slate-800 flex items-center gap-2">
@@ -545,7 +600,8 @@
           <div class="flex items-center gap-1" id="pagination-buttons"></div>
         </div>
       </div>
-
+      </div>
+      <!-- END VIEW WRAPPER 2 -->
     </main>
   </div>
 
@@ -605,13 +661,37 @@
 
           <div>
             <label class="block font-semibold mb-1 text-slate-700">Kelas</label>
-            <select id="kelas" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500">
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
+            <select id="kelas" required class="w-full border rounded-lg p-2.5 outline-none focus:ring-2 focus:ring-emerald-500 font-medium">
+              <optgroup label="Madrasah Ibtidaiyah / SD (1 - 6)">
+                <option value="1">Kelas 1 (Putra / Ikhwan)</option>
+                <option value="1B">Kelas 1B (Banat / Putri / Akhwat)</option>
+                <option value="2">Kelas 2 (Putra / Ikhwan)</option>
+                <option value="2B">Kelas 2B (Banat / Putri / Akhwat)</option>
+                <option value="3">Kelas 3 (Putra / Ikhwan)</option>
+                <option value="3B">Kelas 3B (Banat / Putri / Akhwat)</option>
+                <option value="4">Kelas 4 (Putra / Ikhwan)</option>
+                <option value="4B">Kelas 4B (Banat / Putri / Akhwat)</option>
+                <option value="5">Kelas 5 (Putra / Ikhwan)</option>
+                <option value="5B">Kelas 5B (Banat / Putri / Akhwat)</option>
+                <option value="6">Kelas 6 (Putra / Ikhwan)</option>
+                <option value="6B">Kelas 6B (Banat / Putri / Akhwat)</option>
+              </optgroup>
+              <optgroup label="Madrasah Tsanawiyah / SMP (7 - 9)">
+                <option value="7">Kelas 7 (Putra / Ikhwan)</option>
+                <option value="7B">Kelas 7B (Banat / Putri / Akhwat)</option>
+                <option value="8">Kelas 8 (Putra / Ikhwan)</option>
+                <option value="8B">Kelas 8B (Banat / Putri / Akhwat)</option>
+                <option value="9">Kelas 9 (Putra / Ikhwan)</option>
+                <option value="9B">Kelas 9B (Banat / Putri / Akhwat)</option>
+              </optgroup>
+              <optgroup label="Madrasah Aliyah / SMA (10 - 12)">
+                <option value="10">Kelas 10 (Putra / Ikhwan)</option>
+                <option value="10B">Kelas 10B (Banat / Putri / Akhwat)</option>
+                <option value="11">Kelas 11 (Putra / Ikhwan)</option>
+                <option value="11B">Kelas 11B (Banat / Putri / Akhwat)</option>
+                <option value="12">Kelas 12 (Putra / Ikhwan)</option>
+                <option value="12B">Kelas 12B (Banat / Putri / Akhwat)</option>
+              </optgroup>
             </select>
           </div>
 
@@ -646,6 +726,17 @@
             <!-- Grid 12 Bulan Interaktif -->
             <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 pt-1" id="month-chips-grid">
               <!-- Render otomatis via JS: Juli s/d Juni -->
+            </div>
+
+            <!-- Dynamic Per-Month Schedule & Due Date Inputs (Point 2) -->
+            <div id="jadwal-per-bulan-box" class="hidden bg-white/95 p-3.5 rounded-xl border border-emerald-300 shadow-xs space-y-2.5 mt-3">
+              <div class="flex items-center justify-between flex-wrap gap-1 border-b border-emerald-100 pb-2">
+                <label class="text-xs font-black text-emerald-950 flex items-center gap-1.5">
+                  <i class="fas fa-calendar-days text-emerald-600 text-sm"></i> Atur Tanggal Jatuh Tempo & Nominal Per Bulan Tunggakan
+                </label>
+                <span class="text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full font-semibold border border-emerald-200">Bisa diatur tanggal berbeda sesuai kesepakatan wali</span>
+              </div>
+              <div id="jadwal-per-bulan-list" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
             </div>
 
             <!-- Ringkasan Terpilih & Kalkulator Otomatis Nominal -->
@@ -1344,6 +1435,7 @@ service cloud.firestore {
       <div class="flex justify-between border-t pt-1"><span>Batas Waktu Pelunasan (Jatuh Tempo)</span>: <strong id="sp-tempo"></strong></div>
       <div class="flex justify-between"><span>Rencana Tahapan Pembayaran</span>: <span id="sp-tahapan"></span></div>
       <div class="flex justify-between"><span>Catatan Kesepakatan</span>: <span id="sp-catatan"></span></div>
+      <div id="sp-jadwal-table-container"></div>
     </div>
 
     <p class="text-xs text-justify mb-8">
@@ -1828,6 +1920,63 @@ service cloud.firestore {
     };
 
 
+    
+    // --- 1E. SISTEM NAVIGASI TAMPILAN MANDIRI (INDEPENDENT VIEW SWITCHER) ---
+    window.switchMainView = function(viewMode) {
+      const secGrafik = document.getElementById('section-ringkasan-grafik');
+      const secTabel = document.getElementById('section-rekapitulasi');
+      const ind = document.getElementById('active-view-indicator');
+
+      const navAll = document.getElementById('nav-btn-all');
+      const navGrafik = document.getElementById('nav-btn-grafik');
+      const navTabel = document.getElementById('nav-btn-rekapitulasi');
+
+      const tabAll = document.getElementById('tab-btn-all');
+      const tabGrafik = document.getElementById('tab-btn-grafik');
+      const tabTabel = document.getElementById('tab-btn-rekapitulasi');
+
+      const activeNavClass = "w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl text-white bg-emerald-800 font-bold shadow-sm mb-1.5 border border-emerald-600 text-xs";
+      const inactiveNavClass = "w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 font-medium transition mb-1 text-xs";
+
+      const activeTabClass = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-white text-emerald-800 shadow-xs border border-slate-200";
+      const inactiveTabClass = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-emerald-700 transition flex items-center gap-2";
+
+      if (navAll) navAll.className = inactiveNavClass;
+      if (navGrafik) navGrafik.className = inactiveNavClass;
+      if (navTabel) navTabel.className = inactiveNavClass;
+
+      if (tabAll) tabAll.className = inactiveTabClass;
+      if (tabGrafik) tabGrafik.className = inactiveTabClass;
+      if (tabTabel) tabTabel.className = inactiveTabClass;
+
+      if (viewMode === 'grafik') {
+        if (secGrafik) secGrafik.classList.remove('hidden');
+        if (secTabel) secTabel.classList.add('hidden');
+        if (ind) ind.innerHTML = '<i class="fas fa-chart-pie text-emerald-600 text-[10px]"></i> Mode: Ringkasan & Grafik Saja';
+        if (navGrafik) navGrafik.className = activeNavClass;
+        if (tabGrafik) tabGrafik.className = activeTabClass;
+        updateCharts(database);
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+      } else if (viewMode === 'rekapitulasi') {
+        if (secGrafik) secGrafik.classList.add('hidden');
+        if (secTabel) secTabel.classList.remove('hidden');
+        if (ind) ind.innerHTML = '<i class="fas fa-table-list text-emerald-600 text-[10px]"></i> Mode: Rekapitulasi Data Saja';
+        if (navTabel) navTabel.className = activeNavClass;
+        if (tabTabel) tabTabel.className = activeTabClass;
+      } else {
+        // Mode 'all' / Dashboard Utama
+        viewMode = 'all';
+        if (secGrafik) secGrafik.classList.remove('hidden');
+        if (secTabel) secTabel.classList.remove('hidden');
+        if (ind) ind.innerHTML = '<i class="fas fa-layer-group text-emerald-600 text-[10px]"></i> Mode: Semua Tampilan';
+        if (navAll) navAll.className = activeNavClass;
+        if (tabAll) tabAll.className = activeTabClass;
+        updateCharts(database);
+      }
+
+      localStorage.setItem('mou_active_view', viewMode);
+    };
+
     // --- 1C. LOGIKA MULTI-SELECT BULAN TUNGGAKAN (TAHUN AJARAN JULI - JUNI) ---
     const TAHUN_AJARAN_BULAN = [
       "Juli", "Agustus", "September", "Oktober", "November", "Desember",
@@ -1859,6 +2008,7 @@ service cloud.firestore {
       });
 
       updateSelectedMonthsSummary();
+      renderMonthlyScheduleInputs();
     };
 
     window.toggleMonthSelection = function(bln) {
@@ -1887,6 +2037,102 @@ service cloud.firestore {
       autoCalculateNominalFromMonths();
     };
 
+    // State Jadwal Jatuh Tempo & Kesepakatan Bayar Per Bulan Tunggakan (Point 2)
+    let monthlyScheduleState = {};
+
+    window.renderMonthlyScheduleInputs = function() {
+      const box = document.getElementById('jadwal-per-bulan-box');
+      const list = document.getElementById('jadwal-per-bulan-list');
+      if (!box || !list) return;
+
+      if (selectedMonthsState.length === 0) {
+        box.classList.add('hidden');
+        list.innerHTML = '';
+        return;
+      }
+
+      box.classList.remove('hidden');
+      list.innerHTML = '';
+
+      const rateRaw = document.getElementById('rate_per_month_raw')?.value;
+      const defaultRate = Number(rateRaw) || (Number(document.getElementById('nominal')?.value || 0) / (selectedMonthsState.length || 1)) || 0;
+      const defaultDue = document.getElementById('jatuh_tempo')?.value || '';
+
+      selectedMonthsState.forEach((bln, idx) => {
+        if (!monthlyScheduleState[bln]) {
+          monthlyScheduleState[bln] = {
+            nominal: defaultRate > 0 ? Math.round(defaultRate) : 0,
+            jatuh_tempo: defaultDue
+          };
+        }
+
+        const currentSchedule = monthlyScheduleState[bln];
+        const row = document.createElement('div');
+        row.className = "flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 bg-emerald-50/70 rounded-xl border border-emerald-200/80 text-xs";
+        row.innerHTML = `
+          <div class="flex items-center gap-2 min-w-[130px]">
+            <span class="w-5 h-5 rounded-full bg-emerald-700 text-white font-bold flex items-center justify-center text-[10px]">${idx + 1}</span>
+            <span class="font-extrabold text-slate-800 text-xs">Bulan ${bln}</span>
+          </div>
+          <div class="flex items-center gap-2 flex-1 flex-wrap sm:flex-nowrap">
+            <div class="flex items-center gap-1 flex-1">
+              <span class="text-[10px] text-slate-500 font-semibold">Nominal:</span>
+              <input type="text" 
+                     value="${currentSchedule.nominal ? new Intl.NumberFormat('id-ID').format(currentSchedule.nominal) : ''}" 
+                     placeholder="Rp Nominal" 
+                     oninput="handleMonthlyNominalInput('${bln}', this)"
+                     class="w-full border rounded-lg p-1.5 text-xs font-bold text-right outline-none focus:ring-1 focus:ring-emerald-500 bg-white shadow-xs">
+            </div>
+            <div class="flex items-center gap-1 flex-1">
+              <span class="text-[10px] text-slate-500 font-semibold whitespace-nowrap">Jatuh Tempo:</span>
+              <input type="date" 
+                     value="${currentSchedule.jatuh_tempo || ''}" 
+                     onchange="handleMonthlyDueDateChange('${bln}', this.value)"
+                     class="w-full border rounded-lg p-1.5 text-xs font-semibold outline-none focus:ring-1 focus:ring-emerald-500 bg-white shadow-xs">
+            </div>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+    };
+
+    window.handleMonthlyNominalInput = function(bln, inputEl) {
+      const cleanVal = inputEl.value.replace(/[^0-9]/g, '');
+      const num = Number(cleanVal) || 0;
+      if (!monthlyScheduleState[bln]) monthlyScheduleState[bln] = {};
+      monthlyScheduleState[bln].nominal = num;
+      inputEl.value = num > 0 ? new Intl.NumberFormat('id-ID').format(num) : '';
+      recalculateTotalFromSchedule();
+    };
+
+    window.handleMonthlyDueDateChange = function(bln, dateVal) {
+      if (!monthlyScheduleState[bln]) monthlyScheduleState[bln] = {};
+      monthlyScheduleState[bln].jatuh_tempo = dateVal;
+
+      // Update main input jatuh tempo dengan tanggal jatuh tempo bulan terakhir
+      const allDates = selectedMonthsState.map(m => monthlyScheduleState[m]?.jatuh_tempo).filter(Boolean);
+      if (allDates.length > 0) {
+        allDates.sort();
+        const latest = allDates[allDates.length - 1];
+        const mainDueEl = document.getElementById('jatuh_tempo');
+        if (mainDueEl) mainDueEl.value = latest;
+      }
+    };
+
+    function recalculateTotalFromSchedule() {
+      let total = 0;
+      selectedMonthsState.forEach(m => {
+        if (monthlyScheduleState[m] && monthlyScheduleState[m].nominal) {
+          total += monthlyScheduleState[m].nominal;
+        }
+      });
+      if (total > 0) {
+        document.getElementById('nominal').value = total;
+        document.getElementById('nominal_mask').value = new Intl.NumberFormat('id-ID').format(total);
+        document.getElementById('nominal_terbilang_preview').innerText = formatTerbilang(total);
+      }
+    }
+
     window.updateSelectedMonthsSummary = function() {
       const el = document.getElementById('selected-months-summary');
       if (!el) return;
@@ -1902,11 +2148,23 @@ service cloud.firestore {
     window.autoCalculateNominalFromMonths = function() {
       const rateRaw = document.getElementById('rate_per_month_raw')?.value;
       const rate = Number(rateRaw) || 0;
+      const defaultDue = document.getElementById('jatuh_tempo')?.value || '';
+
       if (rate > 0 && selectedMonthsState.length > 0) {
         const total = rate * selectedMonthsState.length;
         document.getElementById('nominal').value = total;
         document.getElementById('nominal_mask').value = new Intl.NumberFormat('id-ID').format(total);
         document.getElementById('nominal_terbilang_preview').innerText = formatTerbilang(total);
+
+        // Update schedule state for all selected months
+        selectedMonthsState.forEach(m => {
+          if (!monthlyScheduleState[m]) monthlyScheduleState[m] = {};
+          monthlyScheduleState[m].nominal = rate;
+          if (!monthlyScheduleState[m].jatuh_tempo) {
+            monthlyScheduleState[m].jatuh_tempo = defaultDue;
+          }
+        });
+        renderMonthlyScheduleInputs();
       }
     };
 
@@ -2111,30 +2369,13 @@ service cloud.firestore {
       try {
         const parsed = JSON.parse(savedDbStr);
         if (Array.isArray(parsed)) {
-          // Bersihkan data contoh bawaan jika ada (Ahmad Zaki, Aisyah Humaira, Faris Ali)
-          const isDummyData = parsed.some(item => 
-            item.nama_santri === "Ahmad Zaki" || 
-            item.nama_santri === "Aisyah Humaira" || 
-            item.nama_santri === "Faris Ali"
-          );
-          
-          if (isDummyData) {
-            database = parsed.filter(item => 
-              item.nama_santri !== "Ahmad Zaki" && 
-              item.nama_santri !== "Aisyah Humaira" && 
-              item.nama_santri !== "Faris Ali"
-            );
-            localStorage.setItem('mou_tunggakan_db', JSON.stringify(database));
-          } else {
-            database = parsed;
-          }
+          database = parsed;
         }
       } catch (err) {
         console.error("Gagal membaca database lokal:", err);
         database = [];
       }
     } else {
-      // Database awal murni KOSONG (0 Data)
       database = [];
       localStorage.setItem('mou_tunggakan_db', JSON.stringify([]));
     }
@@ -2196,12 +2437,8 @@ service cloud.firestore {
             const cloudDocs = [];
             for (const d of snapshot.docs) {
               const data = d.data();
-              if (data.nama_santri === "Ahmad Zaki" || data.nama_santri === "Aisyah Humaira" || data.nama_santri === "Faris Ali") {
-                // Hapus data contoh dari Firestore di latar belakang agar cloud ikut bersih dari nol
-                deleteDoc(doc(db, "mou_tunggakan", d.id)).catch(() => {});
-                continue;
-              }
               if (!Array.isArray(data.riwayat_cicilan)) data.riwayat_cicilan = [];
+              if (!Array.isArray(data.jadwal_bulan)) data.jadwal_bulan = [];
               cloudDocs.push({ firebaseId: d.id, ...data });
             }
 
@@ -2589,6 +2826,7 @@ service cloud.firestore {
         document.getElementById('nominal_mask').value = '';
         document.getElementById('nominal_terbilang_preview').innerText = '';
         selectedMonthsState = [];
+        monthlyScheduleState = {};
         const rateInput = document.getElementById('rate_per_month');
         if (rateInput) rateInput.value = '';
         const rateRaw = document.getElementById('rate_per_month_raw');
@@ -2952,8 +3190,18 @@ service cloud.firestore {
             ${sum.totalBayar > 0 && sum.sisa > 0 ? `<div class="text-[9px] text-slate-400">Masuk: ${formatRupiah(sum.totalBayar)} (${sum.pct}%)</div>` : ''}
           </td>
           <td class="p-3">
-            <div>${item.jatuh_tempo}</div>
+            <div class="font-bold text-slate-800">${item.jatuh_tempo}</div>
             <span class="text-[9px] px-2 py-0.5 rounded-full ${alertStatus.class}">${alertStatus.text}</span>
+            ${Array.isArray(item.jadwal_bulan) && item.jadwal_bulan.length > 0 ? `
+              <div class="mt-1 space-y-0.5 max-w-[150px]">
+                ${item.jadwal_bulan.map(jb => `
+                  <div class="text-[9px] bg-emerald-50 text-emerald-900 px-1.5 py-0.5 rounded border border-emerald-200 flex justify-between gap-1 items-center">
+                    <span class="font-semibold">${jb.bulan}:</span>
+                    <span class="font-bold text-emerald-700">${jb.jatuh_tempo ? jb.jatuh_tempo.split('-').reverse().slice(0,2).join('/') : '-'}</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
           </td>
           <td class="p-3">
             <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${item.status_info === 'SUDAH INFO' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
@@ -2979,24 +3227,45 @@ service cloud.firestore {
       });
 
       if (totalItems === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="10" class="p-10 text-center">
-              <div class="max-w-md mx-auto space-y-3">
-                <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto text-2xl shadow-sm border border-emerald-100">
-                  <i class="fas fa-file-circle-plus"></i>
+        if (database.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="10" class="p-10 text-center">
+                <div class="max-w-md mx-auto space-y-3">
+                  <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto text-2xl shadow-sm border border-emerald-100">
+                    <i class="fas fa-file-circle-plus"></i>
+                  </div>
+                  <div>
+                    <p class="font-bold text-slate-700 text-sm">Belum Ada Data Surat / MOU</p>
+                    <p class="text-xs text-slate-400 mt-1">Aplikasi siap digunakan dari NOL. Silakan klik tombol di bawah untuk mulai menginput data pertama.</p>
+                  </div>
+                  <button type="button" onclick="toggleModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow transition">
+                    <i class="fas fa-plus-circle"></i> Tambah Surat / MOU Baru
+                  </button>
                 </div>
-                <div>
-                  <p class="font-bold text-slate-700 text-sm">Belum Ada Data Surat / MOU</p>
-                  <p class="text-xs text-slate-400 mt-1">Aplikasi siap digunakan dari NOL. Silakan klik tombol di bawah untuk mulai menginput data pertama.</p>
+              </td>
+            </tr>
+          `;
+        } else {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="10" class="p-10 text-center">
+                <div class="max-w-md mx-auto space-y-3">
+                  <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-2xl shadow-sm border border-amber-100">
+                    <i class="fas fa-filter-circle-xmark"></i>
+                  </div>
+                  <div>
+                    <p class="font-bold text-slate-700 text-sm">Tidak Ada Data Yang Sesuai Filter</p>
+                    <p class="text-xs text-slate-500 mt-1">Terdapat ${database.length} data tersimpan di database lokal, namun tidak cocok dengan filter / kata kunci yang sedang aktif.</p>
+                  </div>
+                  <button type="button" onclick="resetFilter()" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow transition">
+                    <i class="fas fa-undo"></i> Reset Filter & Tampilkan Semua (${database.length} Data)
+                  </button>
                 </div>
-                <button onclick="toggleModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow transition">
-                  <i class="fas fa-plus-circle"></i> Tambah Surat / MOU Baru
-                </button>
-              </div>
-            </td>
-          </tr>
-        `;
+              </td>
+            </tr>
+          `;
+        }
       }
 
       document.getElementById('filtered-counter').innerText = `Menampilkan ${totalItems} data`;
@@ -3233,6 +3502,24 @@ service cloud.firestore {
         const jumlahBulan = bulanMenunggak.length;
         const rincianBulanStr = jumlahBulan > 0 ? `${jumlahBulan} Bulan: ${bulanMenunggak.join(', ')}` : '';
 
+        // Susun rincian kesepakatan jadwal jatuh tempo per bulan tunggakan (Point 2)
+        const jadwalBulanArr = selectedMonthsState.map(bln => {
+          const sched = monthlyScheduleState[bln] || {};
+          return {
+            bulan: bln,
+            nominal: Number(sched.nominal) || Math.round(nominalClean / (selectedMonthsState.length || 1)),
+            jatuh_tempo: sched.jatuh_tempo || jatuhTempo
+          };
+        });
+
+        // Tentukan jatuh tempo utama (tanggal terjauh jika ada jadwal per bulan)
+        let finalJatuhTempo = jatuhTempo;
+        const allDueDates = jadwalBulanArr.map(j => j.jatuh_tempo).filter(Boolean);
+        if (allDueDates.length > 0) {
+          allDueDates.sort();
+          finalJatuhTempo = allDueDates[allDueDates.length - 1];
+        }
+
         const newItem = {
           id: existingId,
           periode: periodeVal,
@@ -3248,7 +3535,8 @@ service cloud.firestore {
           bulan_tunggakan: bulanMenunggak,
           jumlah_bulan: jumlahBulan,
           rincian_bulan: rincianBulanStr,
-          jatuh_tempo: jatuhTempo,
+          jatuh_tempo: finalJatuhTempo,
+          jadwal_bulan: jadwalBulanArr,
           status_info: document.getElementById('status_info')?.value || 'BELUM INFO',
           progres: document.getElementById('progres')?.value || 'menunggak',
           tahapan: document.getElementById('tahapan')?.value || 'tahap ke-1',
@@ -3275,6 +3563,10 @@ service cloud.firestore {
 
         // 4. Render ulang seluruh tabel, grafik, dan perhitungan dashboard secara instan
         renderTable();
+        
+        // 4B. Pastikan tampilan rekapitulasi aktif agar baris baru langsung terlihat
+        const currentActiveView = localStorage.getItem('mou_active_view') || 'all';
+        switchMainView(currentActiveView);
 
         // 5. Tutup modal & bersihkan state
         toggleModal();
@@ -3325,7 +3617,17 @@ service cloud.firestore {
 
       // Pulihkan pilihan bulan tunggakan
       selectedMonthsState = Array.isArray(item.bulan_tunggakan) ? [...item.bulan_tunggakan] : [];
+      monthlyScheduleState = {};
+      if (Array.isArray(item.jadwal_bulan)) {
+        item.jadwal_bulan.forEach(jb => {
+          monthlyScheduleState[jb.bulan] = {
+            nominal: jb.nominal || 0,
+            jatuh_tempo: jb.jatuh_tempo || ''
+          };
+        });
+      }
       renderMonthChips();
+      renderMonthlyScheduleInputs();
 
       document.getElementById('jatuh_tempo').value = item.jatuh_tempo;
       document.getElementById('status_info').value = item.status_info;
@@ -3709,6 +4011,42 @@ service cloud.firestore {
       document.getElementById('sp-catatan').innerText = item.keterangan || '-';
       document.getElementById('sp-tgl-surat').innerText = item.tgl_surat;
       document.getElementById('sp-ttd-wali').innerText = item.nama_wali;
+
+      // Render Rincian Jadwal Jatuh Tempo Per Bulan (Point 2)
+      const spJadwalContainer = document.getElementById('sp-jadwal-table-container');
+      if (spJadwalContainer) {
+        if (Array.isArray(item.jadwal_bulan) && item.jadwal_bulan.length > 0) {
+          spJadwalContainer.innerHTML = `
+            <div class="mt-3 pt-2.5 border-t border-black">
+              <p class="font-bold text-[11px] mb-1.5 text-black uppercase tracking-wider">Rincian Kesepakatan Jadwal Jatuh Tempo Pembayaran Per Bulan:</p>
+              <table class="w-full text-xs border border-collapse border-black text-center">
+                <thead>
+                  <tr class="bg-gray-100 font-bold">
+                    <th class="border border-black p-1.5 w-10">No</th>
+                    <th class="border border-black p-1.5 text-left">Bulan Tunggakan</th>
+                    <th class="border border-black p-1.5 text-right">Nominal Kewajiban</th>
+                    <th class="border border-black p-1.5">Batas Jatuh Tempo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${item.jadwal_bulan.map((jb, i) => `
+                    <tr>
+                      <td class="border border-black p-1 font-semibold">${i + 1}</td>
+                      <td class="border border-black p-1 text-left font-bold">${jb.bulan}</td>
+                      <td class="border border-black p-1 text-right font-medium">${formatRupiah(jb.nominal)}</td>
+                      <td class="border border-black p-1 font-bold text-slate-900">${jb.jatuh_tempo || '-'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+          spJadwalContainer.classList.remove('hidden');
+        } else {
+          spJadwalContainer.innerHTML = '';
+          spJadwalContainer.classList.add('hidden');
+        }
+      }
     };
 
     // Helper Pengisian Data Template Kuitansi Pembayaran Satuan
@@ -4153,8 +4491,13 @@ service cloud.firestore {
     // Inisialisasi awal aplikasi
     applyProfileUI();
     checkAuthSession();
+    resetFilter();
     loadDataFromCloud();
     renderTable();
+    
+    // Terapkan mode tampilan mandiri terakhir yang dipilih (Semua / Grafik / Rekapitulasi)
+    const savedActiveView = localStorage.getItem('mou_active_view') || 'all';
+    switchMainView(savedActiveView);
   </script>
 </body>
 </html>
