@@ -329,58 +329,15 @@
         </div>
       </div>
 
-      <!-- Navigasi Tampilan Mandiri (Independent View Tabs) -->
-      <div class="flex items-center justify-between flex-wrap gap-2 bg-white p-2.5 rounded-2xl border border-slate-200 shadow-xs">
-        <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
-          <button type="button" onclick="switchMainView('all')" id="tab-btn-all" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-white text-emerald-800 shadow-xs border border-slate-200">
-            <i class="fas fa-layer-group"></i> Semua Tampilan
-          </button>
-          <button type="button" onclick="switchMainView('grafik')" id="tab-btn-grafik" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-emerald-700 transition flex items-center gap-2">
-            <i class="fas fa-chart-pie text-emerald-600"></i> Ringkasan & Grafik
-          </button>
-          <button type="button" onclick="switchMainView('rekapitulasi')" id="tab-btn-rekapitulasi" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-emerald-700 transition flex items-center gap-2">
-            <i class="fas fa-table-list text-emerald-600"></i> Rekapitulasi Data
-          </button>
-        </div>
-        <div class="text-[11px] text-slate-500 font-medium px-2 flex items-center gap-2">
-          <span id="active-view-indicator" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
-            <i class="fas fa-layer-group text-emerald-600 text-[10px]"></i> Mode: Semua Tampilan
-          </span>
-        </div>
-      </div>
-
-      <!-- VIEW WRAPPER 1: RINGKASAN & GRAFIK (MANDIRI) -->
+      <!-- SECTION 1: RINGKASAN & GRAFIK (MANDIRI) -->
       <div id="section-ringkasan-grafik" class="space-y-4 md:space-y-6">
-      <!-- Navigasi Tampilan Mandiri (Independent View Tabs) -->
-      <div class="flex items-center justify-between flex-wrap gap-2 bg-white p-2.5 rounded-2xl border border-slate-200 shadow-xs mb-2">
-        <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
-          <button type="button" onclick="switchMainView('all')" id="tab-btn-all" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-white text-emerald-800 shadow-xs border border-slate-200">
-            <i class="fas fa-layer-group"></i> Semua Tampilan
-          </button>
-          <button type="button" onclick="switchMainView('grafik')" id="tab-btn-grafik" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-emerald-700 transition flex items-center gap-2">
-            <i class="fas fa-chart-pie text-emerald-600"></i> Ringkasan & Grafik
-          </button>
-          <button type="button" onclick="switchMainView('rekapitulasi')" id="tab-btn-rekapitulasi" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-emerald-700 transition flex items-center gap-2">
-            <i class="fas fa-table-list text-emerald-600"></i> Rekapitulasi Data
-          </button>
-        </div>
-        <div class="text-[11px] text-slate-500 font-medium px-2 flex items-center gap-2">
-          <span id="active-view-indicator" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
-            <i class="fas fa-layer-group text-emerald-600 text-[10px]"></i> Mode: Semua Tampilan
-          </span>
-        </div>
-      </div>
-
-      <!-- VIEW WRAPPER 1: RINGKASAN & GRAFIK (MANDIRI) -->
-      <div id="section-ringkasan-grafik" class="space-y-4 md:space-y-6">
-        <div class="flex items-center justify-between border-b border-emerald-200/60 pb-2">
+        <div class="flex items-center justify-between border-b border-emerald-200/80 pb-2">
           <h3 class="font-extrabold text-sm md:text-base text-emerald-950 flex items-center gap-2">
             <i class="fas fa-chart-pie text-emerald-600"></i> Ringkasan Statistik & Grafik Analisis
           </h3>
-          <span class="text-[11px] text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200 font-medium">Data Terkini</span>
+          <span class="text-[11px] text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200 font-medium">Grafik Interaktif</span>
         </div>
-        <!-- Stat Cards (Vibrant, Colorful & Modern) -->
-      <div id="statistik-area" class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <div id="statistik-area" class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <!-- Card 1: Total Sisa Tunggakan (Vibrant Amber / Orange) -->
         <div class="relative overflow-hidden bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 md:p-5 text-white shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all">
           <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-white/10 rounded-full blur-sm pointer-events-none"></div>
@@ -480,9 +437,11 @@
       </div>
       <!-- END VIEW WRAPPER 1 -->
 
-      <!-- VIEW WRAPPER 2: REKAPITULASI DATA (MANDIRI) -->
-      <div id="section-rekapitulasi" class="space-y-4 md:space-y-6 pt-2">
-        <div class="flex items-center justify-between border-b border-emerald-200/60 pb-2">
+
+
+      <!-- SECTION 2: REKAPITULASI DATA (MANDIRI) -->
+      <div id="section-rekapitulasi" class="space-y-4 md:space-y-6">
+        <div class="flex items-center justify-between border-b border-emerald-200/80 pb-2">
           <h3 class="font-extrabold text-sm md:text-base text-emerald-950 flex items-center gap-2">
             <i class="fas fa-table-list text-emerald-600"></i> Rekapitulasi Data Surat Perjanjian & MOU
           </h3>
@@ -601,7 +560,7 @@
         </div>
       </div>
       </div>
-      <!-- END VIEW WRAPPER 2 -->
+
     </main>
   </div>
 
@@ -1925,53 +1884,65 @@ service cloud.firestore {
     window.switchMainView = function(viewMode) {
       const secGrafik = document.getElementById('section-ringkasan-grafik');
       const secTabel = document.getElementById('section-rekapitulasi');
-      const ind = document.getElementById('active-view-indicator');
 
       const navAll = document.getElementById('nav-btn-all');
       const navGrafik = document.getElementById('nav-btn-grafik');
       const navTabel = document.getElementById('nav-btn-rekapitulasi');
 
-      const tabAll = document.getElementById('tab-btn-all');
-      const tabGrafik = document.getElementById('tab-btn-grafik');
-      const tabTabel = document.getElementById('tab-btn-rekapitulasi');
-
-      const activeNavClass = "w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl text-white bg-emerald-800 font-bold shadow-sm mb-1.5 border border-emerald-600 text-xs";
+      const activeNavClass = "w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl text-white bg-emerald-800 font-bold shadow-md mb-1.5 border border-emerald-600 text-xs";
       const inactiveNavClass = "w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 hover:bg-emerald-800/60 font-medium transition mb-1 text-xs";
-
-      const activeTabClass = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2 bg-white text-emerald-800 shadow-xs border border-slate-200";
-      const inactiveTabClass = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-emerald-700 transition flex items-center gap-2";
 
       if (navAll) navAll.className = inactiveNavClass;
       if (navGrafik) navGrafik.className = inactiveNavClass;
       if (navTabel) navTabel.className = inactiveNavClass;
 
-      if (tabAll) tabAll.className = inactiveTabClass;
-      if (tabGrafik) tabGrafik.className = inactiveTabClass;
-      if (tabTabel) tabTabel.className = inactiveTabClass;
-
       if (viewMode === 'grafik') {
-        if (secGrafik) secGrafik.classList.remove('hidden');
-        if (secTabel) secTabel.classList.add('hidden');
-        if (ind) ind.innerHTML = '<i class="fas fa-chart-pie text-emerald-600 text-[10px]"></i> Mode: Ringkasan & Grafik Saja';
+        if (secGrafik) {
+          secGrafik.classList.remove('hidden');
+          secGrafik.style.display = 'block';
+        }
+        if (secTabel) {
+          secTabel.classList.add('hidden');
+          secTabel.style.display = 'none';
+        }
         if (navGrafik) navGrafik.className = activeNavClass;
-        if (tabGrafik) tabGrafik.className = activeTabClass;
+
         updateCharts(database);
-        setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+        setTimeout(() => {
+          window.dispatchEvent(new Event('resize'));
+          updateCharts(database);
+        }, 80);
       } else if (viewMode === 'rekapitulasi') {
-        if (secGrafik) secGrafik.classList.add('hidden');
-        if (secTabel) secTabel.classList.remove('hidden');
-        if (ind) ind.innerHTML = '<i class="fas fa-table-list text-emerald-600 text-[10px]"></i> Mode: Rekapitulasi Data Saja';
+        if (secGrafik) {
+          secGrafik.classList.add('hidden');
+          secGrafik.style.display = 'none';
+        }
+        if (secTabel) {
+          secTabel.classList.remove('hidden');
+          secTabel.style.display = 'block';
+        }
         if (navTabel) navTabel.className = activeNavClass;
-        if (tabTabel) tabTabel.className = activeTabClass;
+
+        renderTable();
       } else {
-        // Mode 'all' / Dashboard Utama
+        // Mode 'all' / Dashboard Utama (Tampilkan Semua)
         viewMode = 'all';
-        if (secGrafik) secGrafik.classList.remove('hidden');
-        if (secTabel) secTabel.classList.remove('hidden');
-        if (ind) ind.innerHTML = '<i class="fas fa-layer-group text-emerald-600 text-[10px]"></i> Mode: Semua Tampilan';
+        if (secGrafik) {
+          secGrafik.classList.remove('hidden');
+          secGrafik.style.display = 'block';
+        }
+        if (secTabel) {
+          secTabel.classList.remove('hidden');
+          secTabel.style.display = 'block';
+        }
         if (navAll) navAll.className = activeNavClass;
-        if (tabAll) tabAll.className = activeTabClass;
+
+        renderTable();
         updateCharts(database);
+        setTimeout(() => {
+          window.dispatchEvent(new Event('resize'));
+          updateCharts(database);
+        }, 80);
       }
 
       localStorage.setItem('mou_active_view', viewMode);
